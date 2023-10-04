@@ -12,11 +12,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from subprocess import Popen
 from pyautogui import press, typewrite, hotkey
 
+# Print the input with double lines
 def printDoubleLine(input):
     print('==================================================')
     print(input)
     print('==================================================')
 
+# Print the input with single lines
 def printSingleLine(input):
     print('--------------------------------------------------')
     print(input)
@@ -70,13 +72,14 @@ page_series = pd.Series()
 # Use selenium to upload the pictures to the website with the flloC:\Users\raymondlaw\Pictures\Greenshots_input\ecpr_real_oneline.pngwing URL: https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
 options = webdriver.ChromeOptions()
 options.add_experimental_option("detach", True)
-# options.headless = True
+options.headless = True
 driver = webdriver.Chrome(options=options)
 driver.maximize_window()
 driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-images')
 
-# Click this element: <button type="button" id="Pivot39-Tab1" class="ms-Button ms-Button--action ms-Button--command ms-Pivot-link link-261" role="tab" aria-selected="false" name="JSON" data-content="JSON" data-is-focusable="true" tabindex="-1"><span class="ms-Button-flexContainer flexContainer-257" data-automationid="splitbuttonprimary"><span class="ms-Pivot-linkContent linkContent-253"><span class="ms-Pivot-text text-254"> JSON</span></span></span></button>
-button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot40-Tab1")))
+# This button is clicked to Display the JSON data (The HTML element may be modified in the future)``
+# button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot40-Tab1")))
+button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
 button.click()
 
 # Upload the pictures to the website
@@ -84,7 +87,8 @@ for file in address_files:
     print('\nUploading the file: ' + file)
     # Create a path of the file
     file_path = os.path.join(address_path, file)
-    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
     button.click()
 
     # Use pyautogui to type the path of the file
@@ -108,7 +112,8 @@ for file in contact_files:
     # Create a path of the file
     file_path = os.path.join(contact_path, file)
 
-    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
     button.click()
 
     # Use pyautogui to type the path of the file
@@ -119,6 +124,7 @@ for file in contact_files:
     time.sleep(3)
 
     json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
+    print("Json", json_text)
     json_text = json_text[1:-1]
     json_data = json.loads(json_text)['lines']
     print(json_data)
@@ -135,6 +141,7 @@ print(address_df)
 # Page number series: 30 column as 1 page
 for i in range(0, address_df.__len__()):
     page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
+    
 address_df['Page'] = page_series
 
 # Generate the csv file by Result+time
