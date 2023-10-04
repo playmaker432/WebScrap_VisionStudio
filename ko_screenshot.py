@@ -52,11 +52,6 @@ def separate_contact(json_data, telephone_series, contact_series):
 
 while True:
     username = input('Enter your username: ')
-    confirm = input(f'Confirm your username as "{username}" (yes/no): ').lower()
-    if confirm != 'yes':
-        print('Please re-enter your username.')
-        
-
     path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input')
 
     if os.path.exists(path):
