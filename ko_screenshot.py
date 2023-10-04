@@ -42,7 +42,6 @@ def separate_address(json_data, chinese_address_series, english_address_series):
 def separate_contact(json_data, telephone_series, contact_series):
     for i in range(0, json_data.__len__()):
         content = json_data[i]['content']
-        # print(content, type(content))
         if content[0].isdigit():
             telephone_series = telephone_series._append(pd.Series([content]), ignore_index=True)
             print(content)
@@ -51,104 +50,134 @@ def separate_contact(json_data, telephone_series, contact_series):
     
     return telephone_series, contact_series
 
-# Get the pictures from the path 'C:\Users\raymondlaw\Pictures\Greenshots_input'
-path = r'C:\Users\raymondlaw\Pictures\Greenshots_input'
-# address_files_path = r'C:\Users\raymondlaw\Pictures\Greenshots_input\Greenshots_contact'
-address_path = path + '\Greenshots_address'
-contact_path = path + '\Greenshots_contact'
+while True:
+    username = input('Enter your username: ')
+    confirm = input(f'Confirm your username as "{username}" (yes/no): ').lower()
+    if confirm != 'yes':
+        print('Please re-enter your username.')
+        
 
-address_files = os.listdir(address_path)
-contact_files = os.listdir(contact_path)
+    path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input')
 
-print('Files in the Address folder:\n', address_files)
-print('\nFiles in the Contact folder:\n', contact_files)
+    if os.path.exists(path):
+        break
+    else:
+        print(f'Path: {path} does not exist, please re-enter your username.')
 
-chinese_address_series = pd.Series()
-english_address_series = pd.Series()
-telephone_series = pd.Series()
-contact_series = pd.Series()
-page_series = pd.Series()
+    
+try:
+    address_path = os.path.join(path, f'Greenshots_address')
+    contact_path = os.path.join(path, f'Greenshots_contact')
 
-# Use selenium to upload the pictures to the website with the flloC:\Users\raymondlaw\Pictures\Greenshots_input\ecpr_real_oneline.pngwing URL: https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
-options = webdriver.ChromeOptions()
-options.add_experimental_option("detach", True)
-options.headless = True
-driver = webdriver.Chrome(options=options)
-driver.maximize_window()
-driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-images')
+    address_files = os.listdir(address_path)
+    contact_files = os.listdir(contact_path)
 
-# This button is clicked to Display the JSON data (The HTML element may be modified in the future)``
-# button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot40-Tab1")))
-button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
-button.click()
+    print('Files in the Address folder:\n', address_files)
+    print('\nFiles in the Contact folder:\n', contact_files)
 
-# Upload the pictures to the website
-for file in address_files:
-    print('\nUploading the file: ' + file)
-    # Create a path of the file
-    file_path = os.path.join(address_path, file)
-    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
-    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+    chinese_address_series = pd.Series()
+    english_address_series = pd.Series()
+    telephone_series = pd.Series()
+    contact_series = pd.Series()
+    page_series = pd.Series()
+
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("detach", True)
+    # options.headless = True
+    driver = webdriver.Chrome(options=options)
+    driver.maximize_window()
+    driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-images')
+
+    # This button is clicked to Display the JSON data (The HTML element may be modified in the future)``
+    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot40-Tab1")))
+    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
     button.click()
 
-    # Use pyautogui to type the path of the file
-    time.sleep(1)
-    typewrite(file_path)
-    time.sleep(1)
-    press('enter')
-    time.sleep(3)
+    try: 
+        # Upload the pictures to the website
+        for file in address_files:
+            print('\nUploading the file: ' + file)
+            file_path = os.path.join(address_path, file)
+            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+            button.click()
 
-    json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
-    json_text = json_text[1:-1]
-    json_data = json.loads(json_text)['lines']
-    print(json_data)
+            # Use pyautogui to type the path of the file
+            time.sleep(1)
+            typewrite(file_path)
+            time.sleep(1)
+            press('enter')
+            time.sleep(3)
+
+            json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
+            json_text = json_text[1:-1]
+            json_data = json.loads(json_text)['lines']
+            print(json_data)
+            
+            chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
+
+    except Exception as e:
+        print(f'Error processing file {file}: {e}')
+        driver.quit()
+        input('Press any key to exit the program.')
+        print('The program is terminated.')
+        exit()
+
     
-    chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
+    try:
+        for file in contact_files:
 
-for file in contact_files:
+            print('\nUploading the file: ' + file)
 
-    print('\nUploading the file: ' + file)
+            # Create a path of the file
+            file_path = os.path.join(contact_path, file)
 
-    # Create a path of the file
-    file_path = os.path.join(contact_path, file)
+            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+            button.click()
 
-    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
-    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
-    button.click()
+            # Use pyautogui to type the path of the file
+            time.sleep(1)
+            typewrite(file_path)
+            time.sleep(1)
+            press('enter')
+            time.sleep(3)
 
-    # Use pyautogui to type the path of the file
-    time.sleep(1)
-    typewrite(file_path)
-    time.sleep(1)
-    press('enter')
-    time.sleep(3)
-
-    json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
-    print("Json", json_text)
-    json_text = json_text[1:-1]
-    json_data = json.loads(json_text)['lines']
-    print(json_data)
+            json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
+            print("Json", json_text)
+            json_text = json_text[1:-1]
+            json_data = json.loads(json_text)['lines']
+            print(json_data)
+            
+            telephone_series, contact_series = separate_contact(json_data, telephone_series, contact_series)
     
-    telephone_series, contact_series = separate_contact(json_data, telephone_series, contact_series)
+    except Exception as e:
+        print(f'Error processing file {file}: {e}')
+        # Exit the program if there is an error and show an alert
+        driver.quit()
+        # User input anything to exit the program
+        input('Press any key to exit the program.')
+        print('The program is terminated.')
+        exit()
 
-# After uploading all the pictures, close the browser and use ONE PANDA dataframe to store the Chinese address, English address and telephone number
-driver.quit()
+    driver.quit()
 
-address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
-address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
-print(address_df)
+    address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
+    address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
 
-# Page number series: 30 column as 1 page
-for i in range(0, address_df.__len__()):
-    page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
-    
-address_df['Page'] = page_series
+    for i in range(len(address_df)):
+        page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
+        
+    address_df['Page'] = page_series
 
-# Generate the csv file by Result+time
-name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.csv'
-address_df.to_csv(r'C:\Users\raymondlaw\Pictures\Greenshots_output\\' + name, index=False, encoding='utf-8-sig')
-#Open the csv file
-Popen(r'C:\Users\raymondlaw\Pictures\Greenshots_output\\' + name, shell=True)
+    name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.csv'
+    output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output', name)
 
-print('\nThe program finishes! Output file: ' + name + ' is generated!')
+    address_df.to_csv(output_path, index=False, encoding='utf-8-sig')
+    Popen(output_path, shell=True)
 
+    print(f'\nThe program finishes! Output file: {name} is generated!')
+
+except Exception as e:
+
+     print(f'An error occurred: {e}')
