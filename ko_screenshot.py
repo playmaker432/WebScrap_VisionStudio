@@ -13,6 +13,7 @@ from subprocess import Popen
 from pyautogui import press, typewrite, hotkey
 import tkinter as tk
 import tkinter.messagebox
+import shutil
 # import something to create a popup ui
 
 # Print the input with double lines
@@ -61,6 +62,15 @@ def fileExistOrCreate(path):
     else:
         print(f'Path: {path} exists!')
 
+def upload_files(file_list, folder_path, button_class):
+    for file in file_list:
+        print('\nUploading the file: ' + file)
+        file_path = os.path.join(folder_path, file)
+
+        if not os.path.exists(file_path):
+            print('There is no file in the folder! Please put the file in the specified folder!')
+            break
+
 while True:
     username = input('Enter your username: ')
     userpath = os.path.join(r'C:\Users', username)
@@ -82,12 +92,18 @@ try:
     
     if(os.path.exists(address_path) == False):
        fileExistOrCreate(address_path)
-       # copy the demoAddress_1.png to the address folder
-       demo_address_path = os.path.join(path, f'demoAddress_1.png')
-       demo_address_path = os.path.join(path, f'demoAddress_2.png')
+       # copy the demoAddress_1.png to the address folder by using shutil.copy function
+       shutil.copy('demoAddress_1.png', address_path)
+       shutil.copy('demoAddress_2.png', address_path)
+           
+    # Testing
+    for file in os.listdir(address_path):
+        print(file)
     
     if(os.path.exists(contact_path) == False):
         fileExistOrCreate(contact_path)
+        shutil.copy('demoContact_1.png', address_path)
+        shutil.copy('demoContact_2.png', address_path)
 
     address_files = os.listdir(address_path)
     contact_files = os.listdir(contact_path)
@@ -95,11 +111,7 @@ try:
     print('Files in the Address folder:\n', address_files)
     print('\nFiles in the Contact folder:\n', contact_files)
 
-    chinese_address_series = pd.Series()
-    english_address_series = pd.Series()
-    telephone_series = pd.Series()
-    contact_series = pd.Series()
-    page_series = pd.Series()
+    chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
@@ -113,16 +125,22 @@ try:
     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
     button.click()
 
-    try: 
+
+    # try:
+    #     chinese_address_series, english_address_series = upload_files(address_files, address_path, "ms-Link.upload-link.link.root-265")
+    
+    # except Exception as e:
+    #     print(f'Error processing address file: {e}')
+    #     driver.quit()
+    #     input('Press any key to exit the program.')
+    #     print('The program is terminated.')
+    #     exit()
+
+    try:
         # Upload the pictures to the website
         for file in address_files:
             print('\nUploading the file: ' + file)
             file_path = os.path.join(address_path, file)
-
-            # if tere is nothing in the address folder, then break
-            if(os.path.exists(file_path) == False):
-                print('There is no file in the address folder! Please put the file in the address folder!')
-                break
 
             # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
             button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
@@ -148,8 +166,8 @@ try:
         input('Press any key to exit the program.')
         print('The program is terminated.')
         exit()
+        
 
-    
     try:
         for file in contact_files:
 
@@ -157,11 +175,13 @@ try:
             file_path = os.path.join(contact_path, file)
 
             # if tere is nothing in the address folder, then break
-            if(os.path.exists(file_path) == False):
-                print('There is no file in the address folder! Please put the file in the contact folder!')
-                break
+            # if(os.path.exists(file_path) == False):
+            #     print('There is no file in the address folder! Please put the file in the contact folder!')
+            #     break
 
-            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-265")))
+            # button = driver.find_element_by_xpath("//span[text()='JSON']")
             button.click()
 
             time.sleep(1)
@@ -193,7 +213,7 @@ try:
         input('Press any key to exit the program.')
         print('The program is terminated.')
         exit()
-        
+
     address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
 
     for i in range(len(address_df)):
@@ -209,7 +229,7 @@ try:
         fileExistOrCreate(output_path)
 
     address_df.to_csv(output_file_path, index=False, encoding='utf-8-sig')
-    Popen(output_path, shell=True)
+    Popen(output_file_path, shell=True)
 
     print(f'\nThe program finishes! Output file: {name} is generated!')
 
