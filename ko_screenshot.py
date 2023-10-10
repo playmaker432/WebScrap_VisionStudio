@@ -128,8 +128,8 @@ try:
     contact_files = os.listdir(contact_path)
     if(len(address_files) != len(contact_files)):
         confirm = messagebox.askquestion('Confirmation', "The number of files in the address folder and contact folder are not the same!\nConfirm to proceed?")
-
         if confirm == 'no':
+            print("Exit the program...")
             exit()
     
 
@@ -207,19 +207,17 @@ try:
             telephone_series, contact_series = separate_contact(json_data, telephone_series, contact_series)
     
     except Exception as e:
-        print(f'Error processing file {file}: {e}')
+        tkinter.messagebox.showinfo('Error', f'Error processing file {file}: {e}\n The program is terminated.')
         driver.quit()
-        input('Press any key to exit the program.')
-        print('The program is terminated.')
+        print('The program is terminated...')
         exit()
 
     driver.quit()
 
     address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
     if address_df.empty:
-        print('There is no data in the dataframe!')
-        input('Press any key to exit the program.')
-        print('The program is terminated.')
+        tkinter.messagebox.showinfo('Error', f'No data is generated!\n The program is terminated.')
+        print('The program is terminated...')
         exit()
 
     address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
