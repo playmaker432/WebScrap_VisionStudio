@@ -11,8 +11,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from subprocess import Popen
 from pyautogui import press, typewrite, hotkey
-import tkinter as tk
-import tkinter.messagebox
+import tkinter as tkinter
+from tkinter import messagebox
 import shutil
 # import something to create a popup ui
 
@@ -92,7 +92,7 @@ def fileExistOrCreate(path):
 
 # The 5 series are used to store the data
 chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
-root = tk.Tk()
+root = tkinter.Tk()
 root.withdraw()
 
 while True:
@@ -116,17 +116,22 @@ try:
     
     if(os.path.exists(address_path) == False):
        fileExistOrCreate(address_path)
-       # copy the demoAddress_1.png to the address folder by using shutil.copy function
        shutil.copy('demoAddress_1.png', address_path)
        shutil.copy('demoAddress_2.png', address_path)
     
     if(os.path.exists(contact_path) == False):
         fileExistOrCreate(contact_path)
         shutil.copy('demoContact_1.png', contact_path)
-        shutil.copy('demoContact_2.png', contact_path)
+        # shutil.copy('demoContact_2.png', contact_path)
 
     address_files = os.listdir(address_path)
     contact_files = os.listdir(contact_path)
+    if(len(address_files) != len(contact_files)):
+        confirm = messagebox.askquestion('Confirmation', "The number of files in the address folder and contact folder are not the same!\nConfirm to proceed?")
+
+        if confirm == 'no':
+            exit()
+    
 
     print('Files in the Address folder:\n', address_files)
     print('\nFiles in the Contact folder:\n', contact_files)
@@ -147,7 +152,6 @@ try:
     button.click()
 
     try:
-        # Upload the pictures to the website
         for file in address_files:
             print('\nUploading the file: ' + file)
             file_path = os.path.join(address_path, file)
@@ -157,7 +161,6 @@ try:
             button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
             button.click()
 
-            # Use pyautogui to type the path of the file
             time.sleep(1)
             typewrite(file_path)
             time.sleep(1)
@@ -174,10 +177,7 @@ try:
     except Exception as e:
         # Use tkinter to create a popup ui
         tkinter.messagebox.showinfo('Error', f'Error processing file {file}: {e}\n The program is terminated.')
-        # print(f'Error processing file {file}: {e}')
         driver.quit()
-        # input('Press any key to exit the program.')
-        # print('The program is terminated.')
         exit()
         
     try:
@@ -189,7 +189,6 @@ try:
             # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
             # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div[2]/div[2]/div/div[2]/div/div[1]/button[2]/span/span/span")))
             
-            # Full XPath of button = "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]"
             button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
             button.click()
 
@@ -245,12 +244,7 @@ try:
     tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {name} is generated!') 
 
 except Exception as e:
-
-    # Use tkinter to create a popup ui
-        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-        # print(f'Error processing file {file}: {e}')
-        driver.quit()
-        # input('Press any key to exit the program.')
-        # print('The program is terminated.')
-        exit()
+    tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
+    driver.quit()
+    exit()
         
