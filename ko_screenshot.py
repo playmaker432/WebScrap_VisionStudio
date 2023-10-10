@@ -11,6 +11,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from subprocess import Popen
 from pyautogui import press, typewrite, hotkey
+import tkinter as tk
+import tkinter.messagebox
+# import something to create a popup ui
 
 # Print the input with double lines
 def printDoubleLine(input):
@@ -50,19 +53,41 @@ def separate_contact(json_data, telephone_series, contact_series):
     
     return telephone_series, contact_series
 
+def fileExistOrCreate(path):
+    if(os.path.exists(path) == False):
+        print(f'Path: {path} does not exist, now creating the directories...')
+        os.makedirs(path)
+        print(f'Path: {path} is created successfully!')
+    else:
+        print(f'Path: {path} exists!')
+
 while True:
     username = input('Enter your username: ')
+    userpath = os.path.join(r'C:\Users', username)
     path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input')
+ 
+    if(os.path.exists(userpath) == False):
+        print(f'Username: \'{username}\' does not exist!')
+        continue
 
     if os.path.exists(path):
         break
     else:
-        print(f'Path: {path} does not exist, please re-enter your username.')
-
-    
+        fileExistOrCreate(path)
+        break
+ 
 try:
     address_path = os.path.join(path, f'Greenshots_address')
     contact_path = os.path.join(path, f'Greenshots_contact')
+    
+    if(os.path.exists(address_path) == False):
+       fileExistOrCreate(address_path)
+       # copy the demoAddress_1.png to the address folder
+       demo_address_path = os.path.join(path, f'demoAddress_1.png')
+       demo_address_path = os.path.join(path, f'demoAddress_2.png')
+    
+    if(os.path.exists(contact_path) == False):
+        fileExistOrCreate(contact_path)
 
     address_files = os.listdir(address_path)
     contact_files = os.listdir(contact_path)
@@ -93,6 +118,12 @@ try:
         for file in address_files:
             print('\nUploading the file: ' + file)
             file_path = os.path.join(address_path, file)
+
+            # if tere is nothing in the address folder, then break
+            if(os.path.exists(file_path) == False):
+                print('There is no file in the address folder! Please put the file in the address folder!')
+                break
+
             # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
             button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
             button.click()
@@ -123,15 +154,16 @@ try:
         for file in contact_files:
 
             print('\nUploading the file: ' + file)
-
-            # Create a path of the file
             file_path = os.path.join(contact_path, file)
 
-            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
+            # if tere is nothing in the address folder, then break
+            if(os.path.exists(file_path) == False):
+                print('There is no file in the address folder! Please put the file in the contact folder!')
+                break
+
             button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
             button.click()
 
-            # Use pyautogui to type the path of the file
             time.sleep(1)
             typewrite(file_path)
             time.sleep(1)
@@ -148,9 +180,7 @@ try:
     
     except Exception as e:
         print(f'Error processing file {file}: {e}')
-        # Exit the program if there is an error and show an alert
         driver.quit()
-        # User input anything to exit the program
         input('Press any key to exit the program.')
         print('The program is terminated.')
         exit()
@@ -158,6 +188,12 @@ try:
     driver.quit()
 
     address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
+    if address_df.empty:
+        print('There is no data in the dataframe!')
+        input('Press any key to exit the program.')
+        print('The program is terminated.')
+        exit()
+        
     address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
 
     for i in range(len(address_df)):
@@ -166,9 +202,13 @@ try:
     address_df['Page'] = page_series
 
     name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.csv'
-    output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output', name)
 
-    address_df.to_csv(output_path, index=False, encoding='utf-8-sig')
+    output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output')
+    output_file_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output', name)
+    if(os.path.exists(output_path) == False):
+        fileExistOrCreate(output_path)
+
+    address_df.to_csv(output_file_path, index=False, encoding='utf-8-sig')
     Popen(output_path, shell=True)
 
     print(f'\nThe program finishes! Output file: {name} is generated!')
