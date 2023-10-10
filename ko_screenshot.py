@@ -56,6 +56,8 @@ def separate_contact(json_data, telephone_series, contact_series):
 
 def fileExistOrCreate(path):
     if(os.path.exists(path) == False):
+        # use tkinter to create a popup ui
+        # tkinter.messagebox.showinfo('Information', f'Path: {path} does not exist, now creating the directories...')
         print(f'Path: {path} does not exist, now creating the directories...')
         os.makedirs(path)
         print(f'Path: {path} is created successfully!')
@@ -90,6 +92,8 @@ def fileExistOrCreate(path):
 
 # The 5 series are used to store the data
 chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
+root = tk.Tk()
+root.withdraw()
 
 while True:
     username = input('Enter your username: ')
@@ -168,10 +172,12 @@ try:
             chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
 
     except Exception as e:
-        print(f'Error processing file {file}: {e}')
+        # Use tkinter to create a popup ui
+        tkinter.messagebox.showinfo('Error', f'Error processing file {file}: {e}\n The program is terminated.')
+        # print(f'Error processing file {file}: {e}')
         driver.quit()
-        input('Press any key to exit the program.')
-        print('The program is terminated.')
+        # input('Press any key to exit the program.')
+        # print('The program is terminated.')
         exit()
         
     try:
@@ -235,7 +241,16 @@ try:
     Popen(output_file_path, shell=True)
 
     print(f'\nThe program finishes! Output file: {name} is generated!')
+    # Use tkinter to create a popup ui
+    tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {name} is generated!') 
 
 except Exception as e:
 
-     print(f'An error occurred: {e}')
+    # Use tkinter to create a popup ui
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
+        # print(f'Error processing file {file}: {e}')
+        driver.quit()
+        # input('Press any key to exit the program.')
+        # print('The program is terminated.')
+        exit()
+        
