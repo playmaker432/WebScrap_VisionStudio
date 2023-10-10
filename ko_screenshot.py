@@ -62,14 +62,34 @@ def fileExistOrCreate(path):
     else:
         print(f'Path: {path} exists!')
 
-def upload_files(file_list, folder_path, button_class):
-    for file in file_list:
-        print('\nUploading the file: ' + file)
-        file_path = os.path.join(folder_path, file)
+# def upload_files(file_list, folder_path, button_class):
+    # for file in file_list:
+    #     print('\nUploading the file: ' + file)
+    #     file_path = os.path.join(folder_path, file)
 
-        if not os.path.exists(file_path):
-            print('There is no file in the folder! Please put the file in the specified folder!')
-            break
+    #     if not os.path.exists(file_path):
+    #         print('There is no file in the folder! Please put the file in the specified folder!')
+    #         break
+
+    #     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, button_class)))
+    #     button.click()
+
+    #     time.sleep(1)
+    #     typewrite(file_path)
+    #     time.sleep(1)
+    #     press('enter')
+    #     time.sleep(3)
+
+    #     json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
+    #     json_text = json_text[1:-1]
+    #     json_data = json.loads(json_text)['lines']
+    #     print(json_data)
+
+    #     chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
+    #     return chinese_address_series, english_address_series
+
+# The 5 series are used to store the data
+chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 
 while True:
     username = input('Enter your username: ')
@@ -95,23 +115,17 @@ try:
        # copy the demoAddress_1.png to the address folder by using shutil.copy function
        shutil.copy('demoAddress_1.png', address_path)
        shutil.copy('demoAddress_2.png', address_path)
-           
-    # Testing
-    for file in os.listdir(address_path):
-        print(file)
     
     if(os.path.exists(contact_path) == False):
         fileExistOrCreate(contact_path)
-        shutil.copy('demoContact_1.png', address_path)
-        shutil.copy('demoContact_2.png', address_path)
+        shutil.copy('demoContact_1.png', contact_path)
+        shutil.copy('demoContact_2.png', contact_path)
 
     address_files = os.listdir(address_path)
     contact_files = os.listdir(contact_path)
 
     print('Files in the Address folder:\n', address_files)
     print('\nFiles in the Contact folder:\n', contact_files)
-
-    chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
@@ -122,19 +136,11 @@ try:
 
     # This button is clicked to Display the JSON data (The HTML element may be modified in the future)``
     # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot40-Tab1")))
-    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
+    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
+
+    # Get the button of Full XPATH: "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"
+    button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"))) 
     button.click()
-
-
-    # try:
-    #     chinese_address_series, english_address_series = upload_files(address_files, address_path, "ms-Link.upload-link.link.root-265")
-    
-    # except Exception as e:
-    #     print(f'Error processing address file: {e}')
-    #     driver.quit()
-    #     input('Press any key to exit the program.')
-    #     print('The program is terminated.')
-    #     exit()
 
     try:
         # Upload the pictures to the website
@@ -143,7 +149,8 @@ try:
             file_path = os.path.join(address_path, file)
 
             # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
-            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
+            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
             button.click()
 
             # Use pyautogui to type the path of the file
@@ -167,21 +174,17 @@ try:
         print('The program is terminated.')
         exit()
         
-
     try:
         for file in contact_files:
 
             print('\nUploading the file: ' + file)
             file_path = os.path.join(contact_path, file)
 
-            # if tere is nothing in the address folder, then break
-            # if(os.path.exists(file_path) == False):
-            #     print('There is no file in the address folder! Please put the file in the contact folder!')
-            #     break
-
             # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
-            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-265")))
-            # button = driver.find_element_by_xpath("//span[text()='JSON']")
+            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div[2]/div[2]/div/div[2]/div/div[1]/button[2]/span/span/span")))
+            
+            # Full XPath of button = "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]"
+            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
             button.click()
 
             time.sleep(1)
