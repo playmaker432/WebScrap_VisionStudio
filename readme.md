@@ -2,28 +2,55 @@
 
 ## Description
 
-This tool is used to extract text from images and output Chinese & English addresses . It uses the OCR (Azure AI Vision Audio) to perform the extraction by autiomation (Selenium).
+This tool is used to extract text from images and output Chinese & English addresses. The purpose is to assist the daily work of business team by getting information in pictures. It uses the OCR (Azure AI Vision Audio) to perform the extraction by autiomation (Selenium).
 
-## HOW TO USE
+## Preparation
 
-1. After clicking the 'ko_screenshot.exe', the application will be open the Browser.
-2. The application will run the OCR (Azure AI Vision Audio) to perform the extraction by autiomation (Selenium).
-3. The application will save the output file in the same folder as the application and it will be opened after application is finished.
+1. Prepare the screenshots in the folder 'screenshots' (the folder is in the same folder as the application 'ko_screenshot.exe'). The screenshots should be in the format of '.png' or '.jpg'.
+
+2. You may input any number of screenshots in the folders 'Greenshots_address' and 'Greenshots_content'. But the output csv file will leave the part as null if the screenshot does not contain the complete information. (e.g. if you do not input any photos in the folder 'Greenshots_address', the output csv file will only contain the information of 'Contact', 'Telephone Number' and 'Page'.)
 
 ## Pre-requisites
 
-- No need to install anything. Just run the application 'ko_screenshot.exe'.
-- Warning: Mouse cursor should not be moved during the process. Also, the browser should not be closed during the process.
+- There is no strict hardware requirements for this application.
+- The application is developed and tested on Windows 10 Pro.
 
-### Python libraries
+## HOW TO USE
 
-### Other requirements
+1. Before tunning the application, please make sure that the screenshots are prepared. Please read the 'Preparation' section above.
 
-## How to use
+2. The application will check the files in the pre-defined locations.If this is the first time to run the application, or the predefined directories has not been created, the application will automatically add following directories in 'C:\Users\{username}\Pictures\' with some demo pictures for testing:
 
-### ( TBC... )
+   - ../Pictures/Greenshots_input
 
-## Constraints
+     - ../Pictures/Greenshots_input/Greenshots_address
+     - ../Pictures/Greenshots_input/Greenshots_address
+
+   - ../Pictures/Greenshots_output
+
+3. Before running the application, please follow the instructions in the 'Preparation' section above. The system will also check the files in the pre-defined locations.
+
+4. The application will run the OCR (Azure AI Vision Audio) in the website to perform the extraction by autiomation (Selenium). Please do not move the mouse cursor and input by keyboard before the browser is closed.
+
+5. The application will save the output file in the same folder as the application and it will be opened after application is finished.
+
+## Example Output
+
+- The ouput file has 5 columns: 'Chinese Address','English Address', Contact, 'Telephone Number', 'Page'
+- The output file will be saved as a csv file in the '../Pictures/Greenshots_output'
+- The output file will be opened after application is finished.
+
+## Error Handling
+
+- If you see any error, please refer to the instructions of this file and check the following points:
+
+  - The screenshots are prepared in the right folders
+  - The screenshots are in the format of '.png' or '.jpg'.
+  - The screenshots are in the folder 'Greenshots_address' and 'Greenshots_contact'.
+
+- Please do not move the mouse cursor and input by keyboard before the browser is closed.
+
+- If you find any bugs, please contact the developer.
 
 ## OCR Website link
 

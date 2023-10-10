@@ -139,7 +139,7 @@ try:
     address_files = os.listdir(address_path)
     contact_files = os.listdir(contact_path)
 
-    if (len(address_files) == 0 or len(contact_files) == 0):
+    if (len(address_files) == 0 and len(contact_files) == 0):
         tkinter.messagebox.showinfo('Error', f'Please input photos in the address & contact folders.')
         exit()
     elif(len(address_files) != len(contact_files)):
