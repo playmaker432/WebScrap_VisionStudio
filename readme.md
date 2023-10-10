@@ -6,9 +6,13 @@ This tool is used to extract text from images and output Chinese & English addre
 
 ## Preparation
 
-1. Prepare the screenshots in the folder 'screenshots' (the folder is in the same folder as the application 'ko_screenshot.exe'). The screenshots should be in the format of '.png' or '.jpg'.
+1. It is suggested to use the Greenshot to capture the screenshots. The Greenshot is free and provide useful functions such as capturing the screenshots of last region, magnifying glass, and saving directly in the preferred directory. It also provides the function of capturing the screenshots by pressing the 'Print Screen' button. The Greenshot can be downloaded from the following link: <a href="https://getgreenshot.org/">Greenshot</a>
 
-2. You may input any number of screenshots in the folders 'Greenshots_address' and 'Greenshots_content'. But the output csv file will leave the part as null if the screenshot does not contain the complete information. (e.g. if you do not input any photos in the folder 'Greenshots_address', the output csv file will only contain the information of 'Contact', 'Telephone Number' and 'Page'.)
+2. Prepare the screenshots in the folder 'screenshots' (the folder is in the same folder as the application 'ko_screenshot.exe'). The screenshots should be in the format of '.png' or '.jpg'.
+
+3. You may input any number of screenshots in the folders 'Greenshots_address' and 'contract'. But the output csv file will leave the part as null if the screenshot does not contain the complete information. (e.g. if you do not input any photos in the folder 'Greenshots_address', the output csv file will only contain the information of 'Contact', 'Telephone Number' and 'Page'.)
+
+4. When catpuring the screenshots, please make sure that the screenshots are clear and the text is not covered by other objects. Also, the addresses should be shown as a whole in the screenshot. (e.g. if the address is shown in two lines in the screenshot, the output data will have problems)
 
 ## Pre-requisites
 
@@ -39,6 +43,7 @@ This tool is used to extract text from images and output Chinese & English addre
 - The ouput file has 5 columns: 'Chinese Address','English Address', Contact, 'Telephone Number', 'Page'
 - The output file will be saved as a csv file in the '../Pictures/Greenshots_output'
 - The output file will be opened after application is finished.
+- Please note that the Chinese result is not accurate. The result is only for reference and the user should check the result by themselves.
 
 ## Error Handling
 
@@ -52,6 +57,8 @@ This tool is used to extract text from images and output Chinese & English addre
 
 - If you find any bugs, please contact the developer.
 
-## OCR Website link
+## Related Links
 
-<a href="https://portal.vision.cognitive.azure.com/demo/extract-text-from-images">Azure AI Vision Audio</a>
+- <a href="https://getgreenshot.org/">Greenshot</a>
+
+- <a href="https://portal.vision.cognitive.azure.com/demo/extract-text-from-images">Azure AI Vision Audio</a>
