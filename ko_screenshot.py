@@ -240,14 +240,19 @@ try:
         
     address_df['Page'] = page_series
 
-    name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.csv'
+    name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
+    # name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.csv'
 
     output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output')
     output_file_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output', name)
-    if(os.path.exists(output_path) == False):
+    
+    if not os.path.exists(output_path):
         fileExistOrCreate(output_path)
 
-    address_df.to_csv(output_file_path, index=False, encoding='utf-8-sig')
+    # Convert the file to xlsx format with name 'Result' + current time + '.xlsx'
+    # address_df.to_csv(output_file_path, index=False, encoding='utf-8-sig')
+    address_df.to_excel(output_file_path, index=False)  # Use to_excel() instead of to_csv()
+
     Popen(output_file_path, shell=True)
 
     print(f'\nThe program finishes! Output file: {name} is generated!')
