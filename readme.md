@@ -6,18 +6,13 @@ This tool is used to extract text from images and output Chinese & English addre
 
 ## Preparation
 
-1. It is suggested to use the Greenshot to capture the screenshots. The Greenshot is free and provide useful functions such as capturing the screenshots of last region, magnifying glass, and saving directly in the preferred directory. It also provides the function of capturing the screenshots by pressing the 'Print Screen' button. The Greenshot can be downloaded from the following link: <a href="https://getgreenshot.org/">Greenshot</a>
+1. It is suggested to use the Greenshot to capture the screenshots. The Greenshot is free and provide useful functions such as capturing the screenshots of last region, magnifying glass, and saving directly in the preferred directory. It also provides the function of capturing the screenshots by pressing the 'Print Screen' button. The Greenshot can be downloaded from the following link: https://getgreenshot.org
 
 2. Prepare the screenshots in the folder 'screenshots' (the folder is in the same folder as the application 'ko_screenshot.exe'). The screenshots should be in the format of '.png' or '.jpg'.
 
 3. You may input any number of screenshots in the folders 'Greenshots_address' and 'contract'. But the output csv file will leave the part as null if the screenshot does not contain the complete information. (e.g. if you do not input any photos in the folder 'Greenshots_address', the output csv file will only contain the information of 'Contact', 'Telephone Number' and 'Page'.)
 
 4. When catpuring the screenshots, please make sure that the screenshots are clear and the text is not covered by other objects. Also, the addresses should be shown as a whole in the screenshot. (e.g. if the address is shown in two lines in the screenshot, the output data will have problems)
-
-## Pre-requisites
-
-- There is no strict hardware requirements for this application.
-- The application is developed and tested on Windows 10 Pro.
 
 ## HOW TO USE
 

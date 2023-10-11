@@ -12,14 +12,9 @@ This tool is used to extract text from images and output Chinese & English addre
 
 3. When catpuring the screenshots, please make sure that the screenshots are clear and the text is not covered by other objects. Also, the addresses should be shown as a whole in the screenshot. (e.g. if the address is shown in two lines in the screenshot, the output data will have problems)
 
-## Pre-requisites
-
-- There is no strict hardware requirements for this application.
-- The application is developed and tested on Windows 10 Pro.
-
 ## HOW TO USE
 
-1. Before tunning the application, please make sure that the screenshots are prepared. Please read the 'Preparation' section above.
+1. Before tuning the application, please make sure that the screenshots are prepared. Please read the 'Preparation' section above.
 
 2. The application will check the files in the pre-defined locations.If this is the first time to run the application, or the predefined directories has not been created, the application will automatically add following directories in 'C:\Users\{username}\Pictures\' with some demo pictures for testing:
 
