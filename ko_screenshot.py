@@ -1,4 +1,3 @@
-# Automation of the OCR by uploading files from a specific path to online Vision Studio website and get json data and form dataframe
 import json
 import pandas as pd
 import numpy as np
@@ -14,15 +13,12 @@ from pyautogui import press, typewrite, hotkey
 import tkinter as tkinter
 from tkinter import messagebox
 import shutil
-# import something to create a popup ui
 
-# Print the input with double lines
 def printDoubleLine(input):
     print('==================================================')
     print(input)
     print('==================================================')
 
-# Print the input with single lines
 def printSingleLine(input):
     print('--------------------------------------------------')
     print(input)
@@ -33,7 +29,6 @@ def separate_address(json_data, chinese_address_series, english_address_series):
         content = json_data[i]['content']
         last_slash = content.rfind('/')
 
-        # Use the last_logic to classify Chinese and English addresses 
         chinese_address = content[0:last_slash]
         english_address = content[last_slash+1:]
         
@@ -56,39 +51,32 @@ def separate_contact(json_data, telephone_series, contact_series):
 
 def fileExistOrCreate(path):
     if(os.path.exists(path) == False):
-        # use tkinter to create a popup ui
-        # tkinter.messagebox.showinfo('Information', f'Path: {path} does not exist, now creating the directories...')
         print(f'Path: {path} does not exist, now creating the directories...')
         os.makedirs(path)
         print(f'Path: {path} is created successfully!')
     else:
         print(f'Path: {path} exists!')
 
-# def upload_files(file_list, folder_path, button_class):
-    # for file in file_list:
-    #     print('\nUploading the file: ' + file)
-    #     file_path = os.path.join(folder_path, file)
+def upload_file(driver, file_path):
+    try:
+        button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
+        button.click()
 
-    #     if not os.path.exists(file_path):
-    #         print('There is no file in the folder! Please put the file in the specified folder!')
-    #         break
+        time.sleep(1)
+        typewrite(file_path)
+        time.sleep(1)
+        press('enter')
+        time.sleep(3)
 
-    #     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, button_class)))
-    #     button.click()
-
-    #     time.sleep(1)
-    #     typewrite(file_path)
-    #     time.sleep(1)
-    #     press('enter')
-    #     time.sleep(3)
-
-    #     json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
-    #     json_text = json_text[1:-1]
-    #     json_data = json.loads(json_text)['lines']
-    #     print(json_data)
-
-    #     chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
-    #     return chinese_address_series, english_address_series
+        json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
+        json_text = json_text[1:-1]
+        json_data = json.loads(json_text)['lines']
+        return json_data
+    except Exception as e:
+        tkinter.messagebox.showinfo('Error', f'Error processing file {file_path}: {e}\n The program is terminated.')
+        driver.quit()
+        print('The program is terminated...')
+        exit()
 
 # The 5 series are used to store the data
 chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
@@ -129,7 +117,6 @@ try:
     address_path = os.path.join(path, f'Greenshots_address')
     contact_path = os.path.join(path, f'Greenshots_contact')
 
-
     if(os.path.exists(address_path) == False):
        fileExistOrCreate(address_path)
     
@@ -153,76 +140,35 @@ try:
 
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
-    # options.headless = True
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
     driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-images')
 
-    # This button is clicked to Display the JSON data (The HTML element may be modified in the future)``
-    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot40-Tab1")))
-    # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "Pivot39-Tab1")))
-
-    # Get the button of Full XPATH: "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"
     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"))) 
     button.click()
-
+    
     try:
         for file in address_files:
             print('\nUploading the file: ' + file)
             file_path = os.path.join(address_path, file)
-
-            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-243")))
-            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
-            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
-            button.click()
-
-            time.sleep(1)
-            typewrite(file_path)
-            time.sleep(1)
-            press('enter')
-            time.sleep(3)
-
-            json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
-            json_text = json_text[1:-1]
-            json_data = json.loads(json_text)['lines']
-            print(json_data)
-            
+            json_data = upload_file(driver, file_path)
             chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
 
     except Exception as e:
-        # Use tkinter to create a popup ui
-        tkinter.messagebox.showinfo('Error', f'Error processing file {file}: {e}\n The program is terminated.')
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
         driver.quit()
         exit()
         
     try:
         for file in contact_files:
-
             print('\nUploading the file: ' + file)
             file_path = os.path.join(contact_path, file)
-            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "ms-Link.upload-link.link.root-242")))
-            # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div[2]/div[2]/div/div[2]/div/div[1]/button[2]/span/span/span")))
-            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
-            button.click()
-
-            time.sleep(1)
-            typewrite(file_path)
-            time.sleep(1)
-            press('enter')
-            time.sleep(3)
-
-            json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
-            print("Json", json_text)
-            json_text = json_text[1:-1]
-            json_data = json.loads(json_text)['lines']
-            print(json_data)
-            
+            json_data = upload_file(driver, file_path)
             telephone_series, contact_series = separate_contact(json_data, telephone_series, contact_series)
     
     except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error processing file {file}: {e}\n The program is terminated.')
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
         driver.quit()
-        print('The program is terminated...')
         exit()
 
     driver.quit()
@@ -241,7 +187,6 @@ try:
     address_df['Page'] = page_series
 
     name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.xlsx'
-    # name = 'Result' + time.strftime("%Y%m%d-%H%M%S") + '.csv'
 
     output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output')
     output_file_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output', name)
@@ -249,18 +194,14 @@ try:
     if not os.path.exists(output_path):
         fileExistOrCreate(output_path)
 
-    # Convert the file to xlsx format with name 'Result' + current time + '.xlsx'
-    # address_df.to_csv(output_file_path, index=False, encoding='utf-8-sig')
-    address_df.to_excel(output_file_path, index=False)  # Use to_excel() instead of to_csv()
+    address_df.to_excel(output_file_path, index=False)
 
     Popen(output_file_path, shell=True)
 
     print(f'\nThe program finishes! Output file: {name} is generated!')
-    # Use tkinter to create a popup ui
     tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {name} is generated!') 
 
 except Exception as e:
     tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
     driver.quit()
     exit()
-        
