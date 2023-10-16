@@ -90,6 +90,12 @@ def clone_file(path, directoryName):
     clone_directory = directoryName + time.strftime("%Y%m%d-%H%M%S")
     fileExistOrCreate(path)
     fileExistOrCreate(path + clone_directory)
+
+    for file in path:
+        print('\nCloning the file: ' + file)
+        file_path = os.path.join(path, file)
+        clone_file_path = os.path.join(path + clone_directory, file)
+        shutil.copy(file_path, clone_file_path)
     
     print(f'Files in the {clone_directory} folder:\n', address_files)
 
