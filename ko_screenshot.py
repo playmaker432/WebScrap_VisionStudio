@@ -14,6 +14,11 @@ import tkinter as tkinter
 from tkinter import messagebox
 import shutil
 
+def readTxt(path):
+    with open(path) as f:
+        line = f.readline()
+        return line
+
 def printDoubleLine(input):
     print('==================================================')
     print(input)
@@ -78,6 +83,16 @@ def upload_file(driver, file_path):
         print('The program is terminated...')
         exit()
 
+def clone_file(path, directoryName):
+    
+    print(f'Files in the {path} folder:\n', address_files)
+
+    clone_directory = directoryName + time.strftime("%Y%m%d-%H%M%S")
+    fileExistOrCreate(path)
+    fileExistOrCreate(path + clone_directory)
+    
+    print(f'Files in the {clone_directory} folder:\n', address_files)
+
 # The 5 series are used to store the data
 chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 root = tkinter.Tk()
@@ -87,10 +102,11 @@ address_path = ''
 contact_path = ''
 
 while True:
-    username = input('Enter your username: ')
+    # username = input('Enter your username: ')
+    username = readTxt("username.txt").strip()
     userpath = os.path.join(r'C:\Users', username)
     path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input')
- 
+
     if(os.path.exists(userpath) == False):
         print(f'Username: \'{username}\' does not exist!')
         continue
