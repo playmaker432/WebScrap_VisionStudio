@@ -347,6 +347,7 @@ def main():
         # clone_file(contact_path, os.path.join(input_path, f'Greenshots_contact_backup_{current_time()}'))
         # print(f'\nThe program finishes! Output file: {name} is generated!')
         # tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {name} is generated!') 
+        exit()
 
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
