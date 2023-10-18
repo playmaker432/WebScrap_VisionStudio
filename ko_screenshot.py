@@ -142,7 +142,6 @@ def check_inputLens():
             print("Exit the program...")
             exit()
 
-
 def load_samplePhotos():
     global user
     if(os.path.exists(user.address_path) == False):
