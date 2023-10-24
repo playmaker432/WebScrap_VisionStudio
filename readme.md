@@ -1,5 +1,12 @@
 # OCR Tool
 
+### Update Log
+
+- V1.4 2023/10/24:
+  - Files are sorted in order
+  - Handle "NIL" cases in content
+  - Chinese characters are seen as 'fake number', this will influence the output of the telephone number. It has been fixed.
+
 ## Description
 
 This tool is used to extract text from images and output Chinese & English addresses. The purpose is to assist the daily work of business team by getting information in pictures. It uses the OCR (Azure AI Vision Audio) to perform the extraction by autiomation (Selenium).
