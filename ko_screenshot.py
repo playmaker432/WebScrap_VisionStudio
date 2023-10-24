@@ -77,12 +77,17 @@ def separate_address(json_data, chinese_address_series, english_address_series):
 def separate_contact(json_data, telephone_series, contact_series):
     for i in range(0, json_data.__len__()):
         content = json_data[i]['content']
-        if content[0].isdigit():
+        print(content)
+        # If the first 8 characters are digits, or the content is "NIL", it is a telephone number
+        if(content[:8].isdigit() or content == "NIL"):
             telephone_series = telephone_series._append(pd.Series([content]), ignore_index=True)
-            print(content)
         else:
-            contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
-    
+            # if the last 8 characters are digits, it is a telephone number
+            if(content[-8:].isdigit()):
+                telephone_series = telephone_series._append(pd.Series([content[-8:]]), ignore_index=True)
+                contact_series = contact_series._append(pd.Series([content[:-8]]), ignore_index=True) 
+            else:
+                contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
     return telephone_series, contact_series
 
 def fileExistOrCreate(path):
@@ -224,72 +229,24 @@ def main():
     root = tkinter.Tk()
     root.withdraw()
 
-    # Path setup
-    # input_path = ''
-    # address_path = ''
-    # contact_path = ''
-
-    # username = input('Enter your username: ')
-    # username = readTxt("username.txt").strip()
-    # userpath = os.path.join(r'C:\Users', username)
-
     username = check_username()
     user = User(username)
     user.printUserInformation()
     fileExistOrCreate(user.input_path)
-
-    # if(os.path.exists(userpath) == False):
-    #     print(f'Username: \'{username}\' does not exist!')
-    #     tkinter.messagebox.showinfo('Error', f'Username: \'{username}\' does not exist!\n The program is terminated.')
-    #     exit()
-    
     load_samplePhotos()
 
-    # if(os.path.exists(address_path) 
-
-    # if(os.path.exists(address_path) == False):
-    #     fileExistOrCreate(address_path)
-    #     shutil.copy('demoAddress_1.png', address_path)
-    #     shutil.copy('demoAddress_2.png', address_path)
-    
-    # if(os.path.exists(contact_path) == False):
-    #     fileExistOrCreate(contact_path)
-    #     shutil.copy('demoContact_1.png', contact_path)
-    #     shutil.copy('demoContact_2.png', contact_path)
-
-    try:    
-        # address_path = os.path.join(user.input_path, f'Greenshots_address')
-        # contact_path = os.path.join(user.input_path, f'Greenshots_contact')
-        
+    try:            
         address_files = os.listdir(user.address_path)
         contact_files = os.listdir(user.contact_path)
-        
+        print(contact_files)
+
         check_inputLens()
-
-        # if (len(address_files) == 0 and len(contact_files) == 0):
-        #     tkinter.messagebox.showinfo('Error', f'Please input photos in the address & contact folders.')
-        #     exit()
-        # elif(len(address_files) != len(contact_files)):
-        #     confirm = messagebox.askquestion('Confirmation', "The number of files in the address folder and contact folder are not the same!\nConfirm to proceed?")
-        #     if confirm == 'no':
-        #         print("Exit the program...")
-        #         exit()        
-        # print('Files in the Address folder:\n', address_files)
-        # print('\nFiles in the Contact folder:\n', contact_files)
-
-        # options = webdriver.ChromeOptions()
-        # options.add_experimental_option("detach", True)
-        # driver = webdriver.Chrome(options=options)
-        # driver.maximize_window()
-        # driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-images')
-
-        # button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"))) 
-        # button.click()
 
         driver = driver_setup()
         
         try:
-            for file in address_files:
+            address_files_sorted = sorted(address_files,key=lambda x: int(os.path.splitext(x)[0]))
+            for file in address_files_sorted:
                 print('\nUploading the file: ' + file)
                 file_path = os.path.join(user.address_path, file)
                 json_data = upload_file(driver, file_path)
@@ -301,10 +258,12 @@ def main():
             exit()
             
         try:
-            for file in contact_files:
+            contact_files_sorted = sorted(contact_files,key=lambda x: int(os.path.splitext(x)[0]))
+            for file in contact_files_sorted:
                 print('\nUploading the file: ' + file)
                 file_path = os.path.join(user.contact_path, file)
                 json_data = upload_file(driver, file_path)
+                # print(telephone_series, contact_series)
                 telephone_series, contact_series = separate_contact(json_data, telephone_series, contact_series)
         
         except Exception as e:
@@ -313,40 +272,11 @@ def main():
             exit()
 
         driver.quit()
-
+        
         address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
         print(address_df)
-        # address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
-                
-        # if address_df.empty:
-        #     tkinter.messagebox.showinfo('Error', f'No data is generated!\n The program is terminated.')
-        #     print('The program is terminated...')
-        #     exit()
-
-        # address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
-
-        # for i in range(len(address_df)):
-        #     page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
-            
-        # address_df['Page'] = page_series
-
         generate_output(address_df)
-
-        # name = 'Result' + current_time() + '.xlsx'
-        # output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output')
-        # output_file_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output', name)
         
-        # if not os.path.exists(output_path):
-        #     fileExistOrCreate(output_path)
-
-        # address_df.to_excel(output_file_path, index=False)
-
-        # Popen(output_file_path, shell=True)
-
-        # clone_file(address_path, os.path.join(input_path, f'Greenshots_address_backup_{current_time()}'))
-        # clone_file(contact_path, os.path.join(input_path, f'Greenshots_contact_backup_{current_time()}'))
-        # print(f'\nThe program finishes! Output file: {name} is generated!')
-        # tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {name} is generated!') 
         exit()
 
     except Exception as e:
