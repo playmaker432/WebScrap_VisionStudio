@@ -219,7 +219,6 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
     address_df['Page'] = page_series
     return address_df
 
-
 def main():
     global user
     # The 5 series are used to store the data
