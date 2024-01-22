@@ -184,6 +184,15 @@ def driver_setup():
 
     return driver
 
+def driver_eprc():
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("detach", True)
+    driver = webdriver.Chrome(options=options)
+    driver.maximize_window()
+    driver.get('https://eprc.com.hk/eprcLogin.html')
+
+    return driver
+
 def generate_output(address_df):
     global user
     fileName = 'Result' + current_time() + '.xlsx'
@@ -221,6 +230,14 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
 
 def main():
     global user
+
+    driver = driver_eprc()
+
+    # Manually login to the EPRC website as the verification code is required
+    
+    
+
+
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 
