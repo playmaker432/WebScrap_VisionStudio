@@ -221,6 +221,10 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
 
 def main():
     global user
+
+    # Use selenium to open the EPRC website, then manually input the username and pw.
+    
+
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 
