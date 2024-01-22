@@ -235,24 +235,17 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
 def main():
     global user
 
-    driver = driver_eprc()
+    try:
+        driver = driver_eprc()
+        # Alert dialog that tell the user to input the username and password
+        tkinter.messagebox.showinfo('Information', 'Please input the username and password in the browser, then click OK AFTER LOGGED IN SUCCESSFULLY.')
 
-    # Alert dialog that tell the user to input the username and password
-    tkinter.messagebox.showinfo('Information', 'Please input the username and password in the browser, then click OK to continue.')
-    
-    while True:
-        try: 
-            # Wait infinitely until the driver's form is filled (that is, the form named "LoginForm" is not displayed anymore)
-            WebDriverWait(driver, 100000).until(EC.invisibility_of_element_located((By.NAME, "LoginForm")))
-            print('Login successfully!')
-            break
-        except Exception as e:
-            print('Login failed, please try again.')
-            tkinter.messagebox.showinfo('Error', 'Login failed, please try again.')
-            continue
-    
-    # Show alert box that the user have logged in
-    tkinter.messagebox.showinfo('Information', 'Login successfully! Please click OK to continue.')
+    except Exception as e:
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
+        driver.quit()
+        exit()
+
+    #============================ The end of EPRC ============================#
 
     driver.quit()
 
