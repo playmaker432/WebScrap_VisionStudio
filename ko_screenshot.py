@@ -14,6 +14,10 @@
 # from tkinter import messagebox
 # import shutil
 
+
+# kfl.super
+# orange
+
 import os
 import time
 import json
@@ -231,11 +235,26 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
 def main():
     global user
 
-    # Manually login to the EPRC website as the verification code is required
     driver = driver_eprc()
-    
-    
 
+    # Alert dialog that tell the user to input the username and password
+    tkinter.messagebox.showinfo('Information', 'Please input the username and password in the browser, then click OK to continue.')
+    
+    while True:
+        try: 
+            # Wait infinitely until the driver's form is filled (that is, the form named "LoginForm" is not displayed anymore)
+            WebDriverWait(driver, 100000).until(EC.invisibility_of_element_located((By.NAME, "LoginForm")))
+            print('Login successfully!')
+            break
+        except Exception as e:
+            print('Login failed, please try again.')
+            tkinter.messagebox.showinfo('Error', 'Login failed, please try again.')
+            continue
+    
+    # Show alert box that the user have logged in
+    tkinter.messagebox.showinfo('Information', 'Login successfully! Please click OK to continue.')
+
+    driver.quit()
 
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
