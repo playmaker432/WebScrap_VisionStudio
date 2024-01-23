@@ -118,6 +118,7 @@ def upload_file(driver, file_path):
         json_text = json_text[1:-1]
         json_data = json.loads(json_text)['lines']
         return json_data
+
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error processing file {file_path}: {e}\n The program is terminated.')
         driver.quit()
@@ -190,13 +191,29 @@ def driver_setup():
     return driver
 
 def driver_eprc():
+    desired_zoom_level = 1.5
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
+    # Set the device scale factor to adjust the zoom level
+    options.add_argument(f"--force-device-scale-factor={desired_zoom_level}")
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
     driver.get('https://eprc.com.hk/eprcLogin.html')
 
     return driver
+
+def driver_eprcDemo():
+    desired_zoom_level = 1.5
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("detach", True)
+    # Set the device scale factor to adjust the zoom level
+    options.add_argument(f"--force-device-scale-factor={desired_zoom_level}")
+    driver = webdriver.Chrome(options=options)
+    driver.maximize_window()
+    driver.get('http://127.0.0.1:5500/eprcLogin.html')
+
+    return driver
+
 
 def generate_output(address_df):
     global user
@@ -234,10 +251,63 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
     return address_df
 
 def main():
+
+    # Use bs4 to fetch data in eprcLogin.html <- localhost:5500/eprcLogin.html
+
+
     global user
 
     try:
+        #=================== The start of EPRC Demo ===================
+        driver = driver_eprcDemo()
+        driver.implicitly_wait(3)
+
+        username_input = driver.find_element(By.NAME, 'userName')
+        password_input = driver.find_element(By.NAME, 'password')
+
+        # Input the username and password
+        username_input.send_keys('123')
+        password_input.send_keys('abc')
+
+        # You can also submit the form if needed    
+        driver.find_element(By.NAME, 'LoginForm').submit()
+
+        driver.implicitly_wait(3)
+        # =============================================================
+
+
+
+
+
+
         driver = driver_eprc()
+
+        # Wait for the page to load (you might need to adjust the wait time)
+        driver.implicitly_wait(3)
+
+        # Find the username and password input elements by name
+        username_input = driver.find_element(By.NAME, 'userName')
+        password_input = driver.find_element(By.NAME, 'password')
+
+        # Input the username and password
+        username_input.send_keys('123')
+        password_input.send_keys('abc')
+
+        # You can also submit the form if needed
+        # driver.find_element(By.NAME, 'LoginForm').submit()
+
+        # Use Selenium to login
+        # <input type="text" name="userName" tabindex="1" value="" id="userName" class="loginC">
+        # //*[@id="userName"]
+        # Input the username: "kfl.super" intp the html elment above
+        # username = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@id='userName']")))
+        # username.send_keys("kfl.super")
+
+        # <input type="password" name="password" tabindex="2" value="" id="password" class="loginC">
+        # /html/body/form/table[1]/tbody/tr[3]/td[3]/input
+        # Input the password: "orange" into the html element above
+        # password.send_keys("orange")
+
         # Alert dialog that tell the user to input the username and password
         tkinter.messagebox.showinfo('Information', 'Please click this buttton AFTER you LOGIN & SEARCH.')
 
@@ -255,9 +325,27 @@ def main():
     # Parse the HTML content using BeautifulSoup
     soup = BeautifulSoup(html_content, 'html.parser')
 
+    # Use soup to find the username and password input box
+    # <input type="text" name="userName" tabindex="1" value="" id="userName" class="loginC">
+    # Input the username: "kfl.super" intp the html elment above
+
+    # <input type="password" name="password" tabindex="2" value="" id="password" class="loginC">
+    # Input the password: "orange" into the html element above
+    # Find the username and password input elements
+
+    # <input type="text" name="userName" tabindex="1" value="" id="userName" class="loginC">
+    # Input the username: "kfl.super" intp the html elment above
+    # username = soup.find('input', attrs={'name': 'userName'})
+    # username['value'] = 'kfl.super'
+
+    # <input type="password" name="password" tabindex="2" value="" id="password" class="loginC">
+    # Input the password: "orange" into the html element above
+    # password = soup.find('input', attrs={'name': 'password'})
+    # password['value'] = 'orange'
+
     # Find the button using the provided XPath
-    button_xpath = "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]"
-    button = driver.find_element(By.XPATH, button_xpath)
+    # button_xpath = "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]"
+    # button = driver.find_element(By.XPATH, button_xpath)
 
     # First, Get the total number of searched properties
     
@@ -281,7 +369,7 @@ def main():
     
     # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]
     
-    # page_count = 1
+    page_count = 1
 
     # Get a screenshot every page
     while(page_count <= 2):
