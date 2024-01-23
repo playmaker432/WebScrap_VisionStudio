@@ -31,6 +31,7 @@ from pyautogui import press, typewrite, hotkey
 import tkinter as tkinter
 from tkinter import messagebox
 import shutil
+from bs4 import BeautifulSoup
 
 user = None
 class User:
@@ -238,12 +239,64 @@ def main():
     try:
         driver = driver_eprc()
         # Alert dialog that tell the user to input the username and password
-        tkinter.messagebox.showinfo('Information', 'Please input the username and password in the browser, then click OK AFTER LOGGED IN SUCCESSFULLY.')
+        tkinter.messagebox.showinfo('Information', 'Please click this buttton AFTER you LOGIN & SEARCH.')
 
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
         driver.quit()
         exit()
+
+    #============================ The start of EPRC ============================
+    
+    # Use BS4 to get the HTML content
+    html_content = driver.page_source
+    print(html_content)
+
+    # Parse the HTML content using BeautifulSoup
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Find the button using the provided XPath
+    button_xpath = "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]"
+    button = driver.find_element(By.XPATH, button_xpath)
+
+    # First, Get the total number of searched properties
+    
+    # Total number of searched properties xpath:    
+    # <td align="RIGHT">
+    #   	<font class="txtChi17 pageRecordCountColor">  	
+    #       		1 - 30 (共 Total 443)	
+    #     </font>
+    # </td>
+    # /html/body/table/tbody/tr/td/form/table[1]/tbody/tr/td[4]/font
+        
+    # Next button xpath:
+    # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a   
+    #<a href="/EprcWeb/multi/asking/newAsking.do?opyearFrom=&amp;estateType=&amp;street=&amp;newTbldgId=&amp;type=&amp;askAlertSearch=&amp;presentTbldgId=&amp;streetNoFrom=&amp;askType=&amp;negotiateAsk=&amp;floorNoTo=&amp;changeNameTbldgId=&amp;nature=R%2CB&amp;page=2&amp;streetNoType=&amp;districtShadow=&amp;updateDateTo=28%2F12%2F2023&amp;isCrossDistrict=&amp;floorNoFrom=&amp;cbldgclasskey=&amp;status=&amp;streetNoTo=&amp;hiddenSortOrder=to_char%28a.cupdon%2C%27YYYYMMDD%27%29__desc%2Cdecode%28a.cowner%2C%27O%27%2C1%2C%27A%27%2C2%2C%27B%27%2C3%2C%27T%27%2C4%2C%27I%27%2C5%2C%27E%27%2C6%2C%27D%27%2C7%2C8%29__asc%2Cround%28ROW_NUMBER%28%29OVER%28PARTITION__BY__to_char%28a.cupdon%2C%27YYYYMMDD%27%29%2Ca.cowner%2Cac.ccontactchi__ORDER__BY__ac.ccontactchi__desc%29%2F3___0.5%2C0%29__asc&amp;cstreetcd=&amp;phoneNo=&amp;unitTo=&amp;ageFrom=&amp;floor=&amp;netTo=&amp;changeNameTestateId=&amp;hiddenSortOrderName2=&amp;todayAskType=&amp;updateDateFrom=18%2F11%2F2023&amp;unitFrom=&amp;room=&amp;ageTo=&amp;hiddenSortOrderName=&amp;dateRangeType=EXACT&amp;priceFrom=&amp;refNoTo=&amp;cddname=&amp;isToday=&amp;netFrom=&amp;grossTo=&amp;mode=newAsking&amp;rentFrom=10000&amp;quickPhone3=&amp;din=&amp;priceTo=&amp;quickPhone1=&amp;quickPhone2=&amp;estateId=&amp;district=KL%2CKL-TST%2CKL-YMT%2CKL-MK%2CKL-TKT%2CKL-SKM%2CKL-SSP%2CKL-CSW%2CKL-LCK%2CKL-HH%2CKL-HMT%2CKL-KTK%2CKL-KC%2CKL-KL%2CKL-WTH%2CKL-WTS%2CKL-TWS%2CKL-DH%2CKL-SPK%2CKL-NCW%2CKL-KB%2CKL-NTK%2CKL-KT%2CKL-LT%2CKL-KYT&amp;tbldgId=&amp;building=&amp;refNoFrom=&amp;opyearTo=&amp;bldgAgeType=AGE&amp;selectBuilding=&amp;dateType=UPD&amp;updateDate=180&amp;askAlertDays=&amp;cestateId=&amp;unit=&amp;source=O&amp;refNo=&amp;grossFrom=&amp;usage=RES&amp;method=&amp;rentTo=999999&amp;negotiateRent=&amp;estate=" class="btn btn-primary rounded-corners"><img src="../../common/images/buttons/nav_next.png" border="0" width="20" height="20" style="vertical-align: middle;">下頁&nbsp;Next</a>
+
+    # searched_total_number = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr/td/form/table[1]/tbody/tr/td[4]/font"))).text
+
+    # Get the total number by the class = txtChi17 pageRecordCountColor
+    # searched_total_number = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "txtChi17.pageRecordCountColor"))).text
+    # searched_total_page = int(searched_total_number[searched_total_number.find('共 Total ')+len('共 Total '):searched_total_number.find(')')])
+    
+    # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]
+    
+    # page_count = 1
+
+    # Get a screenshot every page
+    while(page_count <= 2):
+        print(f'Processing page {page_count}...')
+        # Get the screenshot of the page
+        driver.save_screenshot(f'page_{page_count}.png')
+
+        # Click the next button
+        # if(page_count != searched_total_page):
+
+        # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a
+        next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a")))
+        next_button.click()
+
+        page_count += 1
 
     #============================ The end of EPRC ============================#
 
