@@ -1,19 +1,20 @@
-# import json
-# import pandas as pd
-# import numpy as np
-# import os
-# import time
-# from selenium import webdriver
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.remote.webelement import WebElement
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
-# from subprocess import Popen
-# from pyautogui import press, typewrite, hotkey
-# import tkinter as tkinter
-# from tkinter import messagebox
-# import shutil
-
+import json
+import pandas as pd
+import numpy as np
+import os
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from subprocess import Popen
+from pyautogui import press, typewrite, hotkey
+import tkinter as tkinter
+from tkinter import messagebox
+import shutil
+import pyautogui
+import win32.win32gui as win32gui
 
 # kfl.super
 # orange
@@ -32,6 +33,7 @@ import tkinter as tkinter
 from tkinter import messagebox
 import shutil
 from bs4 import BeautifulSoup
+
 
 user = None
 class User:
@@ -194,11 +196,10 @@ def driver_eprc():
     desired_zoom_level = 1.5
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
-    # Set the device scale factor to adjust the zoom level
-    options.add_argument(f"--force-device-scale-factor={desired_zoom_level}")
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
-    driver.get('https://eprc.com.hk/eprcLogin.html')
+    driver.execute_script(f"document.body.style.zoom='80%';")
+    driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-imagesx`')
 
     return driver
 
@@ -213,7 +214,6 @@ def driver_eprcDemo():
     driver.get('http://127.0.0.1:5500/eprcLogin.html')
 
     return driver
-
 
 def generate_output(address_df):
     global user
@@ -251,98 +251,39 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
     return address_df
 
 def main():
-
     # Use bs4 to fetch data in eprcLogin.html <- localhost:5500/eprcLogin.html
-
 
     global user
 
-    try:
-        #=================== The start of EPRC Demo ===================
-        driver = driver_eprcDemo()
-        driver.implicitly_wait(3)
-
-        username_input = driver.find_element(By.NAME, 'userName')
-        password_input = driver.find_element(By.NAME, 'password')
-
-        # Input the username and password
-        username_input.send_keys('123')
-        password_input.send_keys('abc')
-
-        # You can also submit the form if needed    
-        driver.find_element(By.NAME, 'LoginForm').submit()
-
-        driver.implicitly_wait(3)
-        # =============================================================
-
-
-
-
-
-
+    #============================ The start of EPRC ============================
+    try: 
         driver = driver_eprc()
-
-        # Wait for the page to load (you might need to adjust the wait time)
-        driver.implicitly_wait(3)
-
-        # Find the username and password input elements by name
-        username_input = driver.find_element(By.NAME, 'userName')
-        password_input = driver.find_element(By.NAME, 'password')
-
-        # Input the username and password
-        username_input.send_keys('123')
-        password_input.send_keys('abc')
-
-        # You can also submit the form if needed
-        # driver.find_element(By.NAME, 'LoginForm').submit()
-
-        # Use Selenium to login
-        # <input type="text" name="userName" tabindex="1" value="" id="userName" class="loginC">
-        # //*[@id="userName"]
-        # Input the username: "kfl.super" intp the html elment above
-        # username = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@id='userName']")))
-        # username.send_keys("kfl.super")
-
-        # <input type="password" name="password" tabindex="2" value="" id="password" class="loginC">
-        # /html/body/form/table[1]/tbody/tr[3]/td[3]/input
-        # Input the password: "orange" into the html element above
-        # password.send_keys("orange")
-
-        # Alert dialog that tell the user to input the username and password
-        tkinter.messagebox.showinfo('Information', 'Please click this buttton AFTER you LOGIN & SEARCH.')
-
+    
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-        driver.quit()
         exit()
 
-    #============================ The start of EPRC ============================
+    # Alert dialog that tell the user to input the username and password
+    tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
+
+    # Scroll down 175 pixels
+    pyautogui.scroll(-175)  
+
+    # Move to (1770, 1020), then check cursor info, if pointer state is true, click it
+    pyautogui.moveTo(1770, 1020, duration=0.5)
     
-    # Use BS4 to get the HTML content
-    html_content = driver.page_source
-    print(html_content)
+    print(win32gui.GetCursorInfo())
+    cursor = win32gui.GetCursorInfo()
+    print(cursor.index)
 
-    # Parse the HTML content using BeautifulSoup
-    soup = BeautifulSoup(html_content, 'html.parser')
+    if(cursor[1] == 0):
+        pyautogui.click(1770, 1020)
+        print('Clicked the pointer!')
+    else:
+        print('Cannot find any pointer! End loop!')
 
-    # Use soup to find the username and password input box
-    # <input type="text" name="userName" tabindex="1" value="" id="userName" class="loginC">
-    # Input the username: "kfl.super" intp the html elment above
-
-    # <input type="password" name="password" tabindex="2" value="" id="password" class="loginC">
-    # Input the password: "orange" into the html element above
-    # Find the username and password input elements
-
-    # <input type="text" name="userName" tabindex="1" value="" id="userName" class="loginC">
-    # Input the username: "kfl.super" intp the html elment above
-    # username = soup.find('input', attrs={'name': 'userName'})
-    # username['value'] = 'kfl.super'
-
-    # <input type="password" name="password" tabindex="2" value="" id="password" class="loginC">
-    # Input the password: "orange" into the html element above
-    # password = soup.find('input', attrs={'name': 'password'})
-    # password['value'] = 'orange'
-
+    tkinter.messagebox.showinfo('Information', 'Finish testing.')
+    
     # Find the button using the provided XPath
     # button_xpath = "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]"
     # button = driver.find_element(By.XPATH, button_xpath)
@@ -369,26 +310,32 @@ def main():
     
     # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]
     
+    # html_content = driver.page_source
+    # print(html_content)
+
     page_count = 1
 
     # Get a screenshot every page
-    while(page_count <= 2):
-        print(f'Processing page {page_count}...')
+    # while(page_count <= 1):
+        # print(f'Processing page {page_count}...')
         # Get the screenshot of the page
-        driver.save_screenshot(f'page_{page_count}.png')
+        # driver.save_screenshot(f'page_{page_count}.png')
 
         # Click the next button
         # if(page_count != searched_total_page):
 
         # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a
-        next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a")))
-        next_button.click()
+        # next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a")))
+        
+        # //*[@id="resultForm"]/table[4]/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a
+        # next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='resultForm']/table[4]/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a")))
+        # next_button.click()
 
-        page_count += 1
+        # page_count += 1
 
     #============================ The end of EPRC ============================#
 
-    driver.quit()
+    # driver.quit()
 
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()

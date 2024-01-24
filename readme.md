@@ -7,6 +7,34 @@
   - Handle "NIL" cases in content
   - Chinese characters are seen as 'fake number', this will influence the output of the telephone number. It has been fixed.
 
+- V2.0 2024/01/22:
+  - Open the EPRC website
+
+## Current Problem (24/01/2024)
+1. Web Scrapping issues
+
+Somehow cannot 'web scrap' the data, maybe the EPRC web has some anti web-scrap approaches. In this case, automation may not be applied easily. A Possible approach is to use the pyautogui library, but it is not ideal as the html elements are not guranteed to be the same. 
+
+2. Resolution problems
+
+The screen resolution does not matter. Since the contacts are generated as images. The images have fixed size and resolution. After testing, when the Google Chrome with 50% zoom level in the desktop.
+
+3. Null values
+
+This problem can be done if the images can be downlaoded (Prior to solve the problem 1). 
+Otherwise, This problem may need to be checked manually.
+
+4. Hardcoded Pyautogui Code (The stupid way)
+
+The potential "risk" of Pyautogui is that it cannot handle the unexpected cases. Thus, please do not move the mouse unless there is any pop-up message box.
+
+## Current solution (24/01/2024)
+
+As it is not possible to scrap data from ECPR web, the cuurent approach to perform automation would be done by "pyautogui" library.
+
+
+
+
 ## Description
 
 This tool is used to extract text from images and output Chinese & English addresses. The purpose is to assist the daily work of business team by getting information in pictures. It uses the OCR (Azure AI Vision Audio) to perform the extraction by autiomation (Selenium).
@@ -64,3 +92,10 @@ This tool is used to extract text from images and output Chinese & English addre
 - <a href="https://getgreenshot.org/">Greenshot</a>
 
 - <a href="https://portal.vision.cognitive.azure.com/demo/extract-text-from-images">Azure AI Vision Audio</a>
+
+
+
+
+
+
+
