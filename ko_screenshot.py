@@ -313,9 +313,6 @@ def main():
     # html_content = driver.page_source
     # print(html_content)
 
-    page_count = 1
-
-    # Get a screenshot every page
     # while(page_count <= 1):
         # print(f'Processing page {page_count}...')
         # Get the screenshot of the page
@@ -383,10 +380,10 @@ def main():
         
         except Exception as e:
             tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-            driver.quit()
             exit()
 
-        driver.quit()
+        finally:
+            driver.quit()
         
         address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
         print(address_df)
