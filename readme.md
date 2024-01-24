@@ -7,8 +7,20 @@
   - Handle "NIL" cases in content
   - Chinese characters are seen as 'fake number', this will influence the output of the telephone number. It has been fixed.
 
-- V2.0 2024/01/22:
+- V2.0 2024/01/22 (Developing):
   - Open the EPRC website
+
+
+## Current EPRC srcapping solution (24/01/2024)
+
+As it is not possible to scrap data from ECPR web, the cuurent approach to perform automation would be done by "pyautogui" library.
+
+Steps:
+1. The application would create a Google Chrome instance with ECPR website. 
+2. There will be a pop-up message box. Please ignore the box, and then login + search as usual. 
+3. After searching the query, please click the message box to continue.
+4. The automation will start and finish ultimately.
+5. The photos will store in the predefined folder address. 
 
 ## Current Problem (24/01/2024)
 1. Web Scrapping issues
@@ -27,11 +39,6 @@ Otherwise, This problem may need to be checked manually.
 4. Hardcoded Pyautogui Code (The stupid way)
 
 The potential "risk" of Pyautogui is that it cannot handle the unexpected cases. Thus, please do not move the mouse unless there is any pop-up message box.
-
-## Current solution (24/01/2024)
-
-As it is not possible to scrap data from ECPR web, the cuurent approach to perform automation would be done by "pyautogui" library.
-
 
 
 

@@ -199,7 +199,7 @@ def driver_eprc():
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
     driver.execute_script(f"document.body.style.zoom='80%';")
-    driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-imagesx`')
+    driver.get('https://eprc.com.hk/eprcLogin.html')
 
     return driver
 
@@ -266,18 +266,19 @@ def main():
     # Alert dialog that tell the user to input the username and password
     tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
 
-    # Scroll down 175 pixels
-    pyautogui.scroll(-175)  
+    # Diminish the zoom level to 80% in Google Chrome (Press Ctrl + -)
+    hotkey('ctrl', '-')
+    hotkey('ctrl', '-')
 
-    # Move to (1770, 1020), then check cursor info, if pointer state is true, click it
-    pyautogui.moveTo(1770, 1020, duration=0.5)
+    # Move to (1770, 1020) - Next Button, then check cursor info, if pointer state is true, click it
+    pyautogui.moveTo(1770, 1025, duration=0.5)
     
     print(win32gui.GetCursorInfo())
     cursor = win32gui.GetCursorInfo()
-    print(cursor.index)
+    # pointer code: 65539
 
     if(cursor[1] == 0):
-        pyautogui.click(1770, 1020)
+        pyautogui.click(1790, 970)
         print('Clicked the pointer!')
     else:
         print('Cannot find any pointer! End loop!')
