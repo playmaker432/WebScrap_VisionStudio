@@ -215,7 +215,7 @@ def driver_eprcScreenshot():
         # Move the cursor and ready to capture the screen
         pyautogui.press('F4')
 
-        pyautogui.moveTo(1060, 700, duration = 0.5)
+        pyautogui.moveTo(1060, 1010, duration = 0.5)
         pyautogui.dragTo(830, 275, duration=0.5)
         pyautogui.click()
 
