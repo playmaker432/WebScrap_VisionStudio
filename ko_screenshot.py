@@ -255,14 +255,15 @@ def main():
 
     global user
 
-    screenshots_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'Screenshots')
-    if not os.path.exists(screenshots_dir):
-        os.makedirs(screenshots_dir)
-    
-    # Create a new directory in the Screenshots directory and name it by the current time
-    screenshots_dir = os.path.join(screenshots_dir, time.strftime('%Y-%m-%d_%H-%M-%S'))
-    if not os.path.exists(screenshots_dir):
-        os.makedirs(screenshots_dir)
+    # Set up for the alert UI
+    root = tkinter.Tk()
+    root.withdraw()
+
+    username = check_username()
+    user = User(username)
+    user.printUserInformation()
+    fileExistOrCreate(user.input_path)
+    load_samplePhotos()
 
     #============================ The start of EPRC ============================
     try: 
@@ -296,7 +297,7 @@ def main():
     time.sleep(2)
 
     # Paste the address of the new_dir into the file explorer
-    pyautogui.typewrite(screenshots_dir)
+    pyautogui.typewrite(user.address_path)
 
     time.sleep(0.5)
 
@@ -312,26 +313,22 @@ def main():
         print('Cannot find any pointer! End loop!')
 
     print(win32gui.GetCursorInfo())
-    tkinter.messagebox.showinfo('Information', 'Finish testing.')
-    
-
+    tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!')
 
     #============================ The end of EPRC ============================#
-
-    # driver.quit()
 
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
 
     # Set up for the alert UI
-    root = tkinter.Tk()
-    root.withdraw()
+    # root = tkinter.Tk()
+    # root.withdraw()
 
-    username = check_username()
-    user = User(username)
-    user.printUserInformation()
-    fileExistOrCreate(user.input_path)
-    load_samplePhotos()
+    # username = check_username()
+    # user = User(username)
+    # user.printUserInformation()
+    # fileExistOrCreate(user.input_path)
+    # load_samplePhotos()
 
     try:            
         address_files = os.listdir(user.address_path)
