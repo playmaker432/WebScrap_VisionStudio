@@ -206,8 +206,8 @@ def driver_eprc():
 def driver_eprcScreenshot():
     # Diminish the zoom level to 80% in Google Chrome (Press 'Ctrl' + '-')
     time.sleep(1)
-    hotkey('ctrl', '-')
-    hotkey('ctrl', '-')
+    # hotkey('ctrl', '-')
+    # hotkey('ctrl', '-')
 
     page_cnt = 1
 
@@ -222,7 +222,7 @@ def driver_eprcScreenshot():
         # Paste the address of the new_dir into the file explorer
         pyautogui.typewrite(user.contact_path)
 
-        time.sleep(0.5)
+        time.sleep(2)
 
         # Press enter 
         pyautogui.press('enter')
@@ -231,6 +231,11 @@ def driver_eprcScreenshot():
         # Move to Next Page Button, then check cursor info, if pointer state is desired, click it
         pyautogui.moveTo(1770, 1025, duration=0.5)
         cursor = win32gui.GetCursorInfo()
+
+        time.sleep(2)
+        # Click (1873, 969)
+        pyautogui.click(1873, 969)
+        time.sleep(2)
 
         if(cursor[1] == 65567):
             pyautogui.click()
