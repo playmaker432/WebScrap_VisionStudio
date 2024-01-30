@@ -203,6 +203,49 @@ def driver_eprc():
 
     return driver
 
+def driver_eprcScreenshot():
+    # Diminish the zoom level to 80% in Google Chrome (Press 'Ctrl' + '-')
+    time.sleep(1)
+    hotkey('ctrl', '-')
+    hotkey('ctrl', '-')
+
+    page_cnt = 1
+
+    while(True):
+        # Move the cursor and ready to capture the screen
+        pyautogui.press('F4')
+
+        pyautogui.moveTo(1060, 1010, duration=0.5)
+        pyautogui.mouseDown()
+
+        pyautogui.moveTo(830, 275, duration=0.5) 
+        pyautogui.mouseUp()
+        time.sleep(2)
+
+        # Paste the address of the new_dir into the file explorer
+        pyautogui.typewrite(user.contact_path)
+
+        time.sleep(0.5)
+
+        # Press enter 
+        pyautogui.press('enter')
+        pyautogui.press('enter')
+
+        # Move to Next Page Button, then check cursor info, if pointer state is desired, click it
+        pyautogui.moveTo(1770, 1025, duration=0.5)
+        cursor = win32gui.GetCursorInfo()
+
+        if(cursor[1] == 65567):
+            pyautogui.click()
+            time.sleep(2)
+            print('Clicked the \'Next Page\' button!')
+        else:
+            # Print how many pages in total
+            break
+
+    print(win32gui.GetCursorInfo())
+    print(f'\nFinished. There are {page_cnt} pages in total.')
+
 def driver_eprcDemo():
     desired_zoom_level = 1.5
     options = webdriver.ChromeOptions()
@@ -276,59 +319,14 @@ def main():
     # Alert dialog that tell the user to input the username and password
     tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
 
-    # Diminish the zoom level to 80% in Google Chrome (Press Ctrl + -)
-    hotkey('ctrl', '-')
-    hotkey('ctrl', '-')
+    driver_eprcScreenshot()
 
-    # Move to Next Page Button, then check cursor info, if pointer state is desired, click it
-    pyautogui.moveTo(1770, 1025, duration=0.5)
-    
-    cursor = win32gui.GetCursorInfo()
-
-    print(cursor)
-
-    # Move the cursor from lower to 
-    pyautogui.moveTo(1060, 1010, duration=0.25)
-    pyautogui.mouseDown()
-    pyautogui.press('F4')
-
-    pyautogui.moveTo(830, 275, duration=0.25) 
-    pyautogui.mouseUp()
-    time.sleep(2)
-
-    # Paste the address of the new_dir into the file explorer
-    pyautogui.typewrite(user.address_path)
-
-    time.sleep(0.5)
-
-    # Press enter 
-    pyautogui.press('enter')
-    pyautogui.press('enter')
-
-    if(cursor[1] == 65567):
-        pyautogui.click()
-        time.sleep(2)
-        print('Clicked the pointer!')
-    else:
-        print('Cannot find any pointer! End loop!')
-
-    print(win32gui.GetCursorInfo())
     tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!')
 
     #============================ The end of EPRC ============================#
 
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
-
-    # Set up for the alert UI
-    # root = tkinter.Tk()
-    # root.withdraw()
-
-    # username = check_username()
-    # user = User(username)
-    # user.printUserInformation()
-    # fileExistOrCreate(user.input_path)
-    # load_samplePhotos()
 
     try:            
         address_files = os.listdir(user.address_path)
@@ -349,7 +347,7 @@ def main():
 
         except Exception as e:
             tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-            driver.quit()
+            # driver.quit()
             exit()
             
         try:
@@ -365,8 +363,8 @@ def main():
             tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
             exit()
 
-        finally:
-            driver.quit()
+        # finally:
+        #     driver.quit()
         
         address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
         print(address_df)
@@ -376,7 +374,7 @@ def main():
 
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-        driver.quit()
+        # driver.quit()
         exit()
 
     ### HTML ELEMENTS OF THE PAGE ###
