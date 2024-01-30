@@ -215,12 +215,9 @@ def driver_eprcScreenshot():
         # Move the cursor and ready to capture the screen
         pyautogui.press('F4')
 
-        pyautogui.moveTo(1060, 1010, duration=0.5)
-        pyautogui.mouseDown()
-
-        pyautogui.moveTo(830, 275, duration=0.5) 
-        pyautogui.mouseUp()
-        time.sleep(2)
+        pyautogui.moveTo(1060, 700, duration = 0.5)
+        pyautogui.dragTo(830, 275, duration=0.5)
+        pyautogui.click()
 
         # Paste the address of the new_dir into the file explorer
         pyautogui.typewrite(user.contact_path)
