@@ -15,8 +15,6 @@ from tkinter import messagebox
 import shutil
 import pyautogui
 import win32.win32gui as win32gui
-import keyboard
-import threading
 import re
 import tkinter as tk
 from tkinter import simpledialog
