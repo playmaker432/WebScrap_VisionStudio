@@ -15,27 +15,13 @@ from tkinter import messagebox
 import shutil
 import pyautogui
 import win32.win32gui as win32gui
-
-# kfl.super
-# orange
-
-import os
-import time
-import json
-import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from subprocess import Popen
-from pyautogui import press, typewrite, hotkey
-import tkinter as tkinter
-from tkinter import messagebox
-import shutil
-from bs4 import BeautifulSoup
+import keyboard
+import threading
+import re
 
 
 user = None
+stop_automation = False
 class User:
     def printUserInformation(self):
         print(f'Username: {self.username}')
@@ -69,7 +55,7 @@ def printSingleLine(input):
 
 def separate_address(json_data, chinese_address_series, english_address_series):
     for i in range(0, json_data.__len__()):
-        content = json_data[i]['content']
+        content = json_data[i]['text']
         last_slash = content.rfind('/')
 
         chinese_address = content[0:last_slash]
@@ -82,19 +68,23 @@ def separate_address(json_data, chinese_address_series, english_address_series):
     return chinese_address_series, english_address_series
 
 def separate_contact(json_data, telephone_series, contact_series):
-    for i in range(0, json_data.__len__()):
-        content = json_data[i]['content']
+    for i in range(0, json_data.__len__()): 
+        content = json_data[i]['text']
         print(content)
         # If the first 8 characters are digits, or the content is "NIL", it is a telephone number
-        if(content[:8].isdigit() or content == "NIL"):
+        if(content[:8].isdigit() or content == "NIL") and len(content) >= 8:
             telephone_series = telephone_series._append(pd.Series([content]), ignore_index=True)
-        else:
-            # if the last 8 characters are digits, it is a telephone number
-            if(content[-8:].isdigit()):
-                telephone_series = telephone_series._append(pd.Series([content[-8:]]), ignore_index=True)
-                contact_series = contact_series._append(pd.Series([content[:-8]]), ignore_index=True) 
-            else:
-                contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
+        # if there is no single numeric character in the content, it is a contact
+        elif(not any(char.isdigit() for char in content)):
+            contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
+        
+            
+        #     # if the last 8 characters are digits, it is a telephone number
+        #     if(content[-8:].isdigit()):
+        #         telephone_series = telephone_series._append(pd.Series([content[-8:]]), ignore_index=True)
+        #         contact_series = contact_series._append(pd.Series([content[:-8]]), ignore_index=True) 
+        #     else:
+        #         contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
     return telephone_series, contact_series
 
 def fileExistOrCreate(path):
@@ -119,6 +109,7 @@ def upload_file(driver, file_path):
         json_text = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "pre"))).text
         json_text = json_text[1:-1]
         json_data = json.loads(json_text)['lines']
+        print(json_data)
         return json_data
 
     except Exception as e:
@@ -181,10 +172,12 @@ def check_username():
     return username
 
 def driver_setup():
+    # Create a new tab of https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
+    driver.execute_script(f"document.body.style.zoom='80%';")
     driver.get('https://portal.vision.cognitive.azure.com/demo/extract-text-from-images')
 
     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"))) 
@@ -203,62 +196,47 @@ def driver_eprc():
 
     return driver
 
-def driver_eprcScreenshot():
-    # Diminish the zoom level to 80% in Google Chrome (Press 'Ctrl' + '-')
-    time.sleep(1)
-    # hotkey('ctrl', '-')
-    # hotkey('ctrl', '-')
+def eprc_Screenshot():
+    global stop_automation
 
-    page_cnt = 1
+    page_cnt = 1  
 
-    while(True):
-        # Move the cursor and ready to capture the screen
+    while not stop_automation:
         pyautogui.press('F4')
+        
+        # Screenshoting the page
+        pyautogui.moveTo(1186, 1010, duration = 0.5)
+        pyautogui.dragTo(830, 265, duration=2)
+        time.sleep(0.5)
 
-        pyautogui.moveTo(1060, 1010, duration = 0.5)
-        pyautogui.dragTo(830, 275, duration=0.5)
-        pyautogui.click()
-
-        # Paste the address of the new_dir into the file explorer
         pyautogui.typewrite(user.contact_path)
-
-        time.sleep(2)
-
-        # Press enter 
-        pyautogui.press('enter')
+        time.sleep(0.5)
         pyautogui.press('enter')
 
-        # Move to Next Page Button, then check cursor info, if pointer state is desired, click it
-        pyautogui.moveTo(1770, 1025, duration=0.5)
-        cursor = win32gui.GetCursorInfo()
-
-        time.sleep(2)
-        # Click (1873, 969)
+        # Cancel the message box in the corner
         pyautogui.click(1873, 969)
-        time.sleep(2)
+        time.sleep(0.5)
 
-        if(cursor[1] == 65567):
-            pyautogui.click()
-            time.sleep(2)
+        # Click the 'Next Page' button
+        pyautogui.moveTo(1795, 1025, duration=0.5)
+        cursor = win32gui.GetCursorInfo()
+        
+        if cursor[1] == 65567:
             print('Clicked the \'Next Page\' button!')
+            pyautogui.click()
+            page_cnt += 1
         else:
-            # Print how many pages in total
+            print('Cannot find any \'Next Page\' button!')
             break
 
-    print(win32gui.GetCursorInfo())
     print(f'\nFinished. There are {page_cnt} pages in total.')
 
-def driver_eprcDemo():
-    desired_zoom_level = 1.5
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option("detach", True)
-    # Set the device scale factor to adjust the zoom level
-    options.add_argument(f"--force-device-scale-factor={desired_zoom_level}")
-    driver = webdriver.Chrome(options=options)
-    driver.maximize_window()
-    driver.get('http://127.0.0.1:5500/eprcLogin.html')
+def on_key_event(event):
+    global stop_automation
 
-    return driver
+    if event.name == 'f2':
+        stop_automation = True
+        print(f'Pressed \'F2\', stop_automation value is set to {stop_automation}.')
 
 def generate_output(address_df):
     global user
@@ -274,8 +252,8 @@ def generate_output(address_df):
 
     Popen(output_file_path, shell=True)
 
-    clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
-    clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
+    # clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
+    # clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
     print(f'\nThe program finishes! Output file: {fileName} is generated!')
     tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {fileName} is generated!')
 
@@ -296,8 +274,6 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
     return address_df
 
 def main():
-    # Use bs4 to fetch data in eprcLogin.html <- localhost:5500/eprcLogin.html
-
     global user
 
     # Set up for the alert UI
@@ -312,20 +288,28 @@ def main():
 
     #============================ The start of EPRC ============================
     try: 
-        driver = driver_eprc()
+        eprc_driver = driver_eprc()
     
     except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-        exit()
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
 
-    # Alert dialog that tell the user to input the username and password
     tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
 
-    driver_eprcScreenshot()
+     # Set up the key event handle  r
+    keyboard.hook(on_key_event)
 
-    tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!')
+    # Create a thread for running the automation
+    automation_thread = threading.Thread(target=eprc_Screenshot)
+
+    automation_thread.start()
+    automation_thread.join()
+
+    # Alert dialog that tell the user to input the username and password
+    tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!', parent = root)
 
     #============================ The end of EPRC ============================#
+
+    # Create a new tab of https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
 
     # The 5 series are used to store the data
     chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
@@ -340,7 +324,8 @@ def main():
         driver = driver_setup()
         
         try:
-            address_files_sorted = sorted(address_files,key=lambda x: int(os.path.splitext(x)[0]))
+            # address_files_sorted = sorted(address_files,key=lambda x: int(os.path.splitext(x)[0]))
+            address_files_sorted = sorted(address_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
             for file in address_files_sorted:
                 print('\nUploading the file: ' + file)
                 file_path = os.path.join(user.address_path, file)
@@ -353,8 +338,9 @@ def main():
             exit()
             
         try:
-            contact_files_sorted = sorted(contact_files,key=lambda x: int(os.path.splitext(x)[0]))
-            for file in contact_files_sorted:
+            # contact_files_sorted = sorted(contact_files,key=lambda x: int(os.path.splitext(x)[0]))
+            # contact_files_sorted = sorted(contact_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
+            for file in contact_files:
                 print('\nUploading the file: ' + file)
                 file_path = os.path.join(user.contact_path, file)
                 json_data = upload_file(driver, file_path)
@@ -371,60 +357,9 @@ def main():
         address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
         print(address_df)
         generate_output(address_df)
-        
-        exit()
 
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-        # driver.quit()
-        exit()
-
-    ### HTML ELEMENTS OF THE PAGE ###
-            # Find the button using the provided XPath
-    # button_xpath = "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]"
-    # button = driver.find_element(By.XPATH, button_xpath)
-
-    # First, Get the total number of searched properties
-    
-    # Total number of searched properties xpath:    
-    # <td align="RIGHT">
-    #   	<font class="txtChi17 pageRecordCountColor">  	
-    #       		1 - 30 (共 Total 443)	
-    #     </font>
-    # </td>
-    # /html/body/table/tbody/tr/td/form/table[1]/tbody/tr/td[4]/font
-        
-    # Next button xpath:
-    # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a   
-    #<a href="/EprcWeb/multi/asking/newAsking.do?opyearFrom=&amp;estateType=&amp;street=&amp;newTbldgId=&amp;type=&amp;askAlertSearch=&amp;presentTbldgId=&amp;streetNoFrom=&amp;askType=&amp;negotiateAsk=&amp;floorNoTo=&amp;changeNameTbldgId=&amp;nature=R%2CB&amp;page=2&amp;streetNoType=&amp;districtShadow=&amp;updateDateTo=28%2F12%2F2023&amp;isCrossDistrict=&amp;floorNoFrom=&amp;cbldgclasskey=&amp;status=&amp;streetNoTo=&amp;hiddenSortOrder=to_char%28a.cupdon%2C%27YYYYMMDD%27%29__desc%2Cdecode%28a.cowner%2C%27O%27%2C1%2C%27A%27%2C2%2C%27B%27%2C3%2C%27T%27%2C4%2C%27I%27%2C5%2C%27E%27%2C6%2C%27D%27%2C7%2C8%29__asc%2Cround%28ROW_NUMBER%28%29OVER%28PARTITION__BY__to_char%28a.cupdon%2C%27YYYYMMDD%27%29%2Ca.cowner%2Cac.ccontactchi__ORDER__BY__ac.ccontactchi__desc%29%2F3___0.5%2C0%29__asc&amp;cstreetcd=&amp;phoneNo=&amp;unitTo=&amp;ageFrom=&amp;floor=&amp;netTo=&amp;changeNameTestateId=&amp;hiddenSortOrderName2=&amp;todayAskType=&amp;updateDateFrom=18%2F11%2F2023&amp;unitFrom=&amp;room=&amp;ageTo=&amp;hiddenSortOrderName=&amp;dateRangeType=EXACT&amp;priceFrom=&amp;refNoTo=&amp;cddname=&amp;isToday=&amp;netFrom=&amp;grossTo=&amp;mode=newAsking&amp;rentFrom=10000&amp;quickPhone3=&amp;din=&amp;priceTo=&amp;quickPhone1=&amp;quickPhone2=&amp;estateId=&amp;district=KL%2CKL-TST%2CKL-YMT%2CKL-MK%2CKL-TKT%2CKL-SKM%2CKL-SSP%2CKL-CSW%2CKL-LCK%2CKL-HH%2CKL-HMT%2CKL-KTK%2CKL-KC%2CKL-KL%2CKL-WTH%2CKL-WTS%2CKL-TWS%2CKL-DH%2CKL-SPK%2CKL-NCW%2CKL-KB%2CKL-NTK%2CKL-KT%2CKL-LT%2CKL-KYT&amp;tbldgId=&amp;building=&amp;refNoFrom=&amp;opyearTo=&amp;bldgAgeType=AGE&amp;selectBuilding=&amp;dateType=UPD&amp;updateDate=180&amp;askAlertDays=&amp;cestateId=&amp;unit=&amp;source=O&amp;refNo=&amp;grossFrom=&amp;usage=RES&amp;method=&amp;rentTo=999999&amp;negotiateRent=&amp;estate=" class="btn btn-primary rounded-corners"><img src="../../common/images/buttons/nav_next.png" border="0" width="20" height="20" style="vertical-align: middle;">下頁&nbsp;Next</a>
-
-    # searched_total_number = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr/td/form/table[1]/tbody/tr/td[4]/font"))).text
-
-    # Get the total number by the class = txtChi17 pageRecordCountColor
-    # searched_total_number = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "txtChi17.pageRecordCountColor"))).text
-    # searched_total_page = int(searched_total_number[searched_total_number.find('共 Total ')+len('共 Total '):searched_total_number.find(')')])
-    
-    # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]
-    
-    # html_content = driver.page_source
-    # print(html_content)
-
-    # while(page_count <= 1):
-        # print(f'Processing page {page_count}...')
-        # Get the screenshot of the page
-        # driver.save_screenshot(f'page_{page_count}.png')
-
-        # Click the next button
-        # if(page_count != searched_total_page):
-
-        # /html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a
-        # next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/table/tbody/tr/td/form/table[3]/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a")))
-        
-        # //*[@id="resultForm"]/table[4]/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a
-        # next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='resultForm']/table[4]/tbody/tr[1]/td/table/tbody/tr/td[2]/table/tbody/tr/td[4]/a")))
-        # next_button.click()
-
-        # page_count += 1
 
 if __name__ == "__main__":
     main()
