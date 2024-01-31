@@ -18,10 +18,16 @@ import win32.win32gui as win32gui
 import keyboard
 import threading
 import re
+import tkinter as tk
+from tkinter import simpledialog
+from tkinter import messagebox
+import subprocess
 
 
 user = None
 stop_automation = False
+page_cnt = 1
+photo_cnt = 1
 class User:
     def printUserInformation(self):
         print(f'Username: {self.username}')
@@ -67,16 +73,22 @@ def separate_address(json_data, chinese_address_series, english_address_series):
 
     return chinese_address_series, english_address_series
 
-def separate_contact(json_data, telephone_series, contact_series):
+def separate_contact(json_data, telephone_series, contact_series, page_series):
+    global photo_cnt
+
     for i in range(0, json_data.__len__()): 
         content = json_data[i]['text']
         print(content)
         # If the first 8 characters are digits, or the content is "NIL", it is a telephone number
         if(content[:8].isdigit() or content == "NIL") and len(content) >= 8:
             telephone_series = telephone_series._append(pd.Series([content]), ignore_index=True)
+            # page series append the current page number, where the iteration of the loop
+            page_series = page_series._append(pd.Series([photo_cnt]), ignore_index=True)
+            
+
         # if there is no single numeric character in the content, it is a contact
-        elif(not any(char.isdigit() for char in content)):
-            contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
+        # elif(not any(char.isdigit() for char in content)):
+        #     contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
         
             
         #     # if the last 8 characters are digits, it is a telephone number
@@ -85,7 +97,7 @@ def separate_contact(json_data, telephone_series, contact_series):
         #         contact_series = contact_series._append(pd.Series([content[:-8]]), ignore_index=True) 
         #     else:
         #         contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
-    return telephone_series, contact_series
+    return telephone_series, contact_series, page_series
 
 def fileExistOrCreate(path):
     if(os.path.exists(path) == False):
@@ -113,7 +125,7 @@ def upload_file(driver, file_path):
         return json_data
 
     except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error processing file {file_path}: {e}\n The program is terminated.')
+        tkinter.messagebox.showinfo('Error', f'Error processing file {file_path}: {e}\n The program is terminated.', parent = root)
         driver.quit()
         print('The program is terminated...')
         exit()
@@ -131,6 +143,9 @@ def current_time():
 
 def check_inputLens():
     global user
+
+    root = tkinter.Tk()
+
     address_files = os.listdir(user.address_path)
     contact_files = os.listdir(user.contact_path)
 
@@ -138,10 +153,10 @@ def check_inputLens():
     print('\nFiles in the Contact folder:\n', contact_files)
 
     if (len(address_files) == 0 and len(contact_files) == 0):
-        tkinter.messagebox.showinfo('Error', f'Please input photos in the address & contact folders.')
+        tkinter.messagebox.showinfo('Error', f'Please input photos in the address & contact folders.', parent = root)
         exit()
     elif(len(address_files) != len(contact_files)):
-        confirm = messagebox.askquestion('Confirmation', "The number of files in the address folder and contact folder are not the same!\nConfirm to proceed?")
+        confirm = messagebox.askquestion('Confirmation', "The number of files in the address folder and contact folder are not the same!\nConfirm to proceed?", parent = root)
         if confirm == 'no':
             print("Exit the program...")
             exit()
@@ -158,20 +173,10 @@ def load_samplePhotos():
         shutil.copy('demoContact_1.png', user.contact_path)
         shutil.copy('demoContact_2.png', user.contact_path)
 
-def check_username():
-    global user
-    username = readTxt("username.txt").strip()
-    userpath = os.path.join(r'C:\Users', username)
-    if(os.path.exists(userpath) == False):
-        print(f'Username: \'{username}\' does not exist!')
-        tkinter.messagebox.showinfo('Error', f'Username: \'{username}\' does not exist!\n The program is terminated.')
-        exit()
-    else:
-        print(f'Username: \'{username}\' exists!')
-
-    return username
-
 def driver_setup():
+    global photo_cnt
+    root = tkinter.Tk()
+
     # Create a new tab of https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
@@ -183,7 +188,49 @@ def driver_setup():
     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"))) 
     button.click()
 
-    return driver
+    chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
+
+    try:            
+        address_files = os.listdir(user.address_path)
+        contact_files = os.listdir(user.contact_path)
+        print(contact_files)
+
+        check_inputLens()
+
+        try:
+            # address_files_sorted = sorted(address_files,key=lambda x: int(os.path.splitext(x)[0]))
+            address_files_sorted = sorted(address_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
+            for file in address_files_sorted:
+                print('\nUploading the file: ' + file)
+                file_path = os.path.join(user.address_path, file)
+                json_data = upload_file(driver, file_path)
+                chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
+
+        except Exception as e:
+            tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
+            # driver.quit()
+            exit()
+            
+        try:
+            # contact_files_sorted = sorted(contact_files,key=lambda x: int(os.path.splitext(x)[0]))
+            # contact_files_sorted = sorted(contact_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
+            for file in contact_files:
+                print('\nUploading the file: ' + file)
+                file_path = os.path.join(user.contact_path, file)
+                json_data = upload_file(driver, file_path)
+                telephone_series, contact_series, page_series = separate_contact(json_data, telephone_series, contact_series, page_series)
+                photo_cnt += 1
+        
+        except Exception as e:
+            tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
+            exit()
+
+        address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
+        print(address_df)
+        generate_output(address_df)
+
+    except Exception as e:
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
 
 def driver_eprc():
     desired_zoom_level = 1.5
@@ -194,19 +241,26 @@ def driver_eprc():
     driver.execute_script(f"document.body.style.zoom='80%';")
     driver.get('https://eprc.com.hk/eprcLogin.html')
 
-    return driver
+    tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
+
+    eprc_Screenshot()
+
+    # return driver
 
 def eprc_Screenshot():
     global stop_automation
-
-    page_cnt = 1  
+    global page_cnt
+    global user
 
     while not stop_automation:
+        time.sleep(2)
+
+        print("Page " + str(page_cnt) + ":")
         pyautogui.press('F4')
         
         # Screenshoting the page
         pyautogui.moveTo(1186, 1010, duration = 0.5)
-        pyautogui.dragTo(830, 265, duration=2)
+        pyautogui.dragTo(830, 255, duration=2.5)
         time.sleep(0.5)
 
         pyautogui.typewrite(user.contact_path)
@@ -252,8 +306,8 @@ def generate_output(address_df):
 
     Popen(output_file_path, shell=True)
 
-    # clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
-    # clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
+    clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
+    clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
     print(f'\nThe program finishes! Output file: {fileName} is generated!')
     tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {fileName} is generated!')
 
@@ -267,18 +321,122 @@ def build_outputDF(chinese_address_series, english_address_series, contact_serie
 
     address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
 
-    for i in range(len(address_df)):
-        page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
+    # This part is HARD CODED, need to be changed if the number of pages is changed
+    # for i in range(len(address_df)):
+    #     page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
         
     address_df['Page'] = page_series
     return address_df
+
+class SimpleUI:
+    global user
+
+    def __init__(self, master):
+        self.master = master
+        master.title("Simple UI")
+
+        # Set a larger font size
+        font_size = 12
+
+        self.label = tk.Label(master, text="Choose an option:", pady=10, font=("Arial", font_size))
+        self.label.pack()
+
+        self.button4 = tk.Button(master, text="Open Input Folder", command=self.open_input_folder, pady=5, font=("Arial", font_size))
+        self.button4.pack(pady=5)
+
+        self.button5 = tk.Button(master, text="Open Output Folder", command=self.open_output_folder, pady=5, font=("Arial", font_size))
+        self.button5.pack(pady=5)
+
+        self.button1 = tk.Button(master, text="Check/Change Username", command=self.check_change_username, pady=5, font=("Arial", font_size))
+        self.button1.pack(pady=5)
+
+        self.button2 = tk.Button(master, text="Screenshot EPRC", command=self.driver_eprc, pady=5, font=("Arial", font_size))
+        self.button2.pack(pady=5)
+
+        self.button3 = tk.Button(master, text="OCR by Vision Studio", command=driver_setup, pady=5, font=("Arial", font_size))
+        self.button3.pack(pady=5)
+
+        # When the simpleUI is closed, ask the user first if they want to close the program
+        master.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def driver_eprc(self):
+        # Disable the button to prevent multiple clicks during the operation
+        self.master.withdraw()
+        driver_eprc()
+        self.master.deiconify()
+    
+    def driver_setup(self):
+        # Disable the button to prevent multiple clicks during the operation
+        self.master.withdraw()
+        driver_setup()
+        self.master.deiconify()
+
+    def check_change_username(self):
+        current_username = readTxt("username.txt").strip()
+        userpath = os.path.join(r'C:\Users', current_username)
+
+        # Show the current username
+        messagebox.showinfo('Current Username', f'Current Username: {current_username}')
+
+        # Ask the user if they want to change it
+        change_username = messagebox.askyesno('Change Username', 'Do you want to change the username?')
+
+        if not change_username:
+            return
+
+        # Prompt for a new username
+        new_username = simpledialog.askstring("Change Username", "Enter a new username:")
+
+        if not new_username:
+            messagebox.showwarning('Warning', 'Username cannot be empty.')
+            return
+
+        # Check if the new username exists in the syste
+        new_userpath = os.path.join(r'C:\Users', new_username)
+        if os.path.exists(new_userpath):
+            with open("username.txt", "w") as f:
+                f.write(new_username)
+            messagebox.showinfo('Username Changed', f'Username changed to: {new_username}')
+        else:
+            messagebox.showwarning('Warning', f'Username {new_username} does not exist.')
+
+    def open_input_folder(self):
+        try:
+            subprocess.run(['explorer', user.input_path], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error opening directory: {e}")
+
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Please check that you have logged out EPRC.\nDo you want to quit?"):
+            self.master.destroy()
+            exit()
+    
+    def open_output_folder(self):
+        # USe subprocess.Popen() to open the folder
+        try:
+            subprocess.run(['explorer', user.output_path], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error opening directory: {e}")
+            
+
+def check_username():
+    username = readTxt("username.txt").strip()  
+    userpath = os.path.join(r'C:\Users', username)
+    if(os.path.exists(userpath) == False):
+        print(f'Username: \'{username}\' does not exist!')
+        tkinter.messagebox.showinfo('Error', f'Username: \'{username}\' does not exist!\n The program is terminated.')
+        exit()
+    else:
+        print(f'Username: \'{username}\' exists!')
+    return username
 
 def main():
     global user
 
     # Set up for the alert UI
     root = tkinter.Tk()
-    root.withdraw()
+    root.geometry("400x300")
+    root.eval('tk::PlaceWindow . center')
 
     username = check_username()
     user = User(username)
@@ -286,26 +444,32 @@ def main():
     fileExistOrCreate(user.input_path)
     load_samplePhotos()
 
+    app = SimpleUI(root)
+    root.mainloop()
+
+    exit()
+
+
     #============================ The start of EPRC ============================
-    try: 
-        eprc_driver = driver_eprc()
+    # try: 
+    #     eprc_driver = driver_eprc()
     
-    except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
+    # except Exception as e:
+    #     tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
 
-    tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
+    # tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
 
-     # Set up the key event handle  r
-    keyboard.hook(on_key_event)
+    #  # Set up the key event handle  r
+    # keyboard.hook(on_key_event)
 
-    # Create a thread for running the automation
-    automation_thread = threading.Thread(target=eprc_Screenshot)
+    # # Create a thread for running the automation
+    # automation_thread = threading.Thread(target=eprc_Screenshot)
 
-    automation_thread.start()
-    automation_thread.join()
+    # automation_thread.start()
+    # automation_thread.join()
 
-    # Alert dialog that tell the user to input the username and password
-    tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!', parent = root)
+    # # Alert dialog that tell the user to input the username and password
+    # tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!', parent = root)
 
     #============================ The end of EPRC ============================#
 
