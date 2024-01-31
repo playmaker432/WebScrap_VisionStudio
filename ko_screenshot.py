@@ -251,9 +251,10 @@ def eprc_Screenshot():
     global user
 
     while not stop_automation:
-        time.sleep(2)
+        time.sleep(3.0)
 
         print("Page " + str(page_cnt) + ":")
+
         pyautogui.press('F4')
         
         # Screenshoting the page
@@ -261,9 +262,11 @@ def eprc_Screenshot():
         pyautogui.dragTo(830, 255, duration=2.5)
         time.sleep(0.5)
 
-        pyautogui.typewrite(user.contact_path)
-        time.sleep(0.5)
-        pyautogui.press('enter')
+        # pyautogui.typewrite(user.contact_path)
+        # time.sleep(0.5)
+        # pyautogui.press('enter')
+
+        # time.sleep(0.5)
 
         # Cancel the message box in the corner
         pyautogui.click(1873, 969)
@@ -272,10 +275,11 @@ def eprc_Screenshot():
         # Click the 'Next Page' button
         pyautogui.moveTo(1795, 1025, duration=0.5)
         cursor = win32gui.GetCursorInfo()
+        print(cursor)
         
-        if cursor[1] == 65567:
-            print('Clicked the \'Next Page\' button!')
+        if cursor[1] == 65567 or cursor[1] == 65597:
             pyautogui.click()
+            print('Clicked the \'Next Page\' button!')
             page_cnt += 1
         else:
             print('Cannot find any \'Next Page\' button!')
