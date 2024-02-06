@@ -28,6 +28,8 @@ page_cnt = 1
 photo_cnt = 1
 query_cnt = 1
 query_list = ["香港", "九龍", "新界"]
+query_name = ""
+
 class User:
     def printUserInformation(self):
         print(f'Username: {self.username}')
@@ -163,6 +165,51 @@ def load_samplePhotos():
         shutil.copy('demoContact_1.png', user.contact_path)
         shutil.copy('demoContact_2.png', user.contact_path)
 
+def on_key_event(event):
+    global stop_automation
+
+    if event.name == 'f2':
+        stop_automation = True
+        print(f'Pressed \'F2\', stop_automation value is set to {stop_automation}.')
+
+def generate_output(address_df):
+    global user
+    fileName = 'Result' + current_time() + '.xlsx'
+    user.input_path = os.path.join(r'C:\Users', user.username, 'Pictures\Greenshots_input')
+    user.output_path = os.path.join(r'C:\Users', user.username, f'Pictures\Greenshots_output')
+    output_file_path = os.path.join(r'C:\Users', user.username, f'Pictures\Greenshots_output', fileName)
+    
+    if not os.path.exists(user.output_path):
+        fileExistOrCreate(user.output_path)
+
+    address_df.to_excel(output_file_path, index=False)
+
+    Popen(output_file_path, shell=True)
+
+    clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
+    clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
+    clone_file(user.fullscreen_path, os.path.join(user.input_path, f'Greenshots_fullscreen_backup_{current_time()}'))
+    
+    print(f'\nThe program finishes! Output file: {fileName} is generated!')
+    tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {fileName} is generated!')
+
+def build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series):
+    address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
+            
+    if address_df.empty:
+        tkinter.messagebox.showinfo('Error', f'No data is generated!\n The program is terminated.')
+        print('The program is terminated...')
+        exit()
+
+    address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
+
+    # This part is HARD CODED, need to be changed if the number of pages is changed
+    # for i in range(len(address_df)):
+    #     page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
+        
+    address_df['Page'] = page_series
+    return address_df
+
 def driver_setup():
     global photo_cnt
     root = tkinter.Tk()
@@ -230,109 +277,10 @@ def driver_eprc():
     driver.maximize_window()
     driver.execute_script(f"document.body.style.zoom='80%';")
     driver.get('https://eprc.com.hk/eprcLogin.html')
-
-def eprc_Screenshot():
-    global stop_automation
-    global page_cnt
-    global user
-
-    tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
-
-    while not stop_automation:
-        time.sleep(3.0)
-
-        print("Page " + str(page_cnt) + ":")
-
-        pyautogui.press('F4')
-        
-        time.sleep(0.5)
-
-        # Screenshoting the page
-        pyautogui.moveTo(1186, 1010, duration = 0.5)
-        pyautogui.dragTo(830, 255, duration=2.5)
-        
-        time.sleep(0.5)
-        pyautogui.typewrite(user.contact_path + f"\\Greenshots_contact_{page_cnt}.png")
-        time.sleep(0.5)
-        pyautogui.press('enter')
-
-        time.sleep(2.0)
-
-        # press the control + print scrn button to capture the full screen
-        pyautogui.hotkey('ctrl', 'printscreen')
-        time.sleep(0.5)
-        pyautogui.typewrite(user.input_path + f"\\Greenshots_fullscreen\\{page_cnt}.png")
-        pyautogui.press('enter')
-        
-
-        time.sleep(2.0)
-
-        # Cancel the message box in the corner
-        pyautogui.click(1873, 969)
-        time.sleep(0.5)
-
-        # Click the 'Next Page' button
-        pyautogui.moveTo(1795, 1025, duration=0.5)
-        cursor = win32gui.GetCursorInfo()
-        print(cursor)
-        
-        if cursor[1] == 65567 or cursor[1] == 65597:
-            pyautogui.click()
-            print('Clicked the \'Next Page\' button!')
-            page_cnt += 1
-        else:
-            print('Cannot find any \'Next Page\' button!')
-            break
-
-    print(f'\nFinished. There are {page_cnt} pages in total.')
-
-def on_key_event(event):
-    global stop_automation
-
-    if event.name == 'f2':
-        stop_automation = True
-        print(f'Pressed \'F2\', stop_automation value is set to {stop_automation}.')
-
-def generate_output(address_df):
-    global user
-    fileName = 'Result' + current_time() + '.xlsx'
-    user.input_path = os.path.join(r'C:\Users', user.username, 'Pictures\Greenshots_input')
-    user.output_path = os.path.join(r'C:\Users', user.username, f'Pictures\Greenshots_output')
-    output_file_path = os.path.join(r'C:\Users', user.username, f'Pictures\Greenshots_output', fileName)
     
-    if not os.path.exists(user.output_path):
-        fileExistOrCreate(user.output_path)
-
-    address_df.to_excel(output_file_path, index=False)
-
-    Popen(output_file_path, shell=True)
-
-    clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
-    clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
-    clone_file(user.fullscreen_path, os.path.join(user.input_path, f'Greenshots_fullscreen_backup_{current_time()}'))
-    
-    print(f'\nThe program finishes! Output file: {fileName} is generated!')
-    tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {fileName} is generated!')
-
-def build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series):
-    address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
-            
-    if address_df.empty:
-        tkinter.messagebox.showinfo('Error', f'No data is generated!\n The program is terminated.')
-        print('The program is terminated...')
-        exit()
-
-    address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
-
-    # This part is HARD CODED, need to be changed if the number of pages is changed
-    # for i in range(len(address_df)):
-    #     page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
-        
-    address_df['Page'] = page_series
-    return address_df
-
 class SimpleUI:
     global user
+
 
     def __init__(self, master):
         self.master = master
@@ -356,7 +304,7 @@ class SimpleUI:
         self.button2 = tk.Button(master, text="4. Open EPRC Website", command=self.driver_eprc, pady=5, font=("Arial", font_size))
         self.button2.pack(pady=5)
 
-        self.button3 = tk.Button(master, text="5. Screenshot EPRC", command=eprc_Screenshot, pady=5, font=("Arial", font_size))
+        self.button3 = tk.Button(master, text="5. Screenshot EPRC", command=self.eprc_Screenshot, pady=5, font=("Arial", font_size))
         self.button3.pack(pady=5)
 
         self.button4 = tk.Button(master, text="6. OCR by Vision Studio", command=driver_setup, pady=5, font=("Arial", font_size))
@@ -371,6 +319,67 @@ class SimpleUI:
         driver_eprc()
         self.master.deiconify()
     
+    def eprc_Screenshot(self):
+        global stop_automation
+        global page_cnt
+        global user
+        global query_name
+
+        # Use a suer input dialog to get the query name
+        query_name = simpledialog.askstring("Query Name", "Enter a query name:")
+
+        tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
+        self.master.withdraw()
+
+        pyautogui.click()
+
+        while not stop_automation:
+            time.sleep(3.0)
+
+            print("Page " + str(page_cnt) + ":")
+
+            pyautogui.press('F4')
+
+            # Screenshoting the page
+            pyautogui.moveTo(1100, 1010, duration = 0.5)
+            pyautogui.dragTo(830, 255, duration=2.5)
+            
+            time.sleep(0.5)
+            pyautogui.typewrite(user.contact_path + f"\\Greenshots_contact_{page_cnt}.png")
+            time.sleep(0.5)
+            pyautogui.press('enter')
+
+            time.sleep(2.0)
+
+            # press the control + print scrn button to capture the full screen
+            pyautogui.hotkey('ctrl', 'printscreen')
+            time.sleep(0.5)
+            pyautogui.typewrite(user.input_path + f"\\Greenshots_fullscreen\\{page_cnt}.png")
+            pyautogui.press('enter')
+            
+
+            time.sleep(2.0)
+
+            # Cancel the message box in the corner
+            pyautogui.click(1873, 969)
+            time.sleep(0.5)
+
+            # Click the 'Next Page' button
+            pyautogui.moveTo(1795, 1025, duration=0.5)
+            cursor = win32gui.GetCursorInfo()
+            print(cursor)
+            
+            if cursor[1] == 65567 or cursor[1] == 65597:
+                pyautogui.click()
+                print('Clicked the \'Next Page\' button!')
+                page_cnt += 1
+            else:
+                print('Cannot find any \'Next Page\' button!')
+                break
+
+        print(f'\nFinished. There are {page_cnt} pages in total.')
+        self.master.deiconify()
+
     def driver_setup(self):
         # Disable the button to prevent multiple clicks during the operation
         self.master.withdraw()
