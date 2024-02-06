@@ -26,6 +26,8 @@ user = None
 stop_automation = False
 page_cnt = 1
 photo_cnt = 1
+query_cnt = 1
+query_list = ["香港", "九龍", "新界"]
 class User:
     def printUserInformation(self):
         print(f'Username: {self.username}')
@@ -33,6 +35,8 @@ class User:
         print(f'Address path: {self.address_path}')
         print(f'Contact path: {self.contact_path}')
         print(f'Output path: {self.output_path}')
+        print(f'Fullscreen path: {self.fullscreen_path}')
+        
     
     def __init__(self, username):
         self.username = username
@@ -40,7 +44,7 @@ class User:
         self.address_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_address')
         self.contact_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_contact')
         self.output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output')
-        # self.printUserInformation()
+        self.fullscreen_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_fullscreen')
 
 def readTxt(path):
     with open(path) as f:
@@ -83,18 +87,6 @@ def separate_contact(json_data, telephone_series, contact_series, page_series):
             # page series append the current page number, where the iteration of the loop
             page_series = page_series._append(pd.Series([photo_cnt]), ignore_index=True)
             
-
-        # if there is no single numeric character in the content, it is a contact
-        # elif(not any(char.isdigit() for char in content)):
-        #     contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
-        
-            
-        #     # if the last 8 characters are digits, it is a telephone number
-        #     if(content[-8:].isdigit()):
-        #         telephone_series = telephone_series._append(pd.Series([content[-8:]]), ignore_index=True)
-        #         contact_series = contact_series._append(pd.Series([content[:-8]]), ignore_index=True) 
-        #     else:
-        #         contact_series = contact_series._append(pd.Series([content]), ignore_index=True)
     return telephone_series, contact_series, page_series
 
 def fileExistOrCreate(path):
@@ -239,16 +231,12 @@ def driver_eprc():
     driver.execute_script(f"document.body.style.zoom='80%';")
     driver.get('https://eprc.com.hk/eprcLogin.html')
 
-    tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
-
-    eprc_Screenshot()
-
-    # return driver
-
 def eprc_Screenshot():
     global stop_automation
     global page_cnt
     global user
+
+    tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
 
     while not stop_automation:
         time.sleep(3.0)
@@ -257,16 +245,27 @@ def eprc_Screenshot():
 
         pyautogui.press('F4')
         
+        time.sleep(0.5)
+
         # Screenshoting the page
         pyautogui.moveTo(1186, 1010, duration = 0.5)
         pyautogui.dragTo(830, 255, duration=2.5)
+        
         time.sleep(0.5)
+        pyautogui.typewrite(user.contact_path + f"\\Greenshots_contact_{page_cnt}.png")
+        time.sleep(0.5)
+        pyautogui.press('enter')
 
-        # pyautogui.typewrite(user.contact_path)
-        # time.sleep(0.5)
-        # pyautogui.press('enter')
+        time.sleep(2.0)
 
-        # time.sleep(0.5)
+        # press the control + print scrn button to capture the full screen
+        pyautogui.hotkey('ctrl', 'printscreen')
+        time.sleep(0.5)
+        pyautogui.typewrite(user.input_path + f"\\Greenshots_fullscreen\\{page_cnt}.png")
+        pyautogui.press('enter')
+        
+
+        time.sleep(2.0)
 
         # Cancel the message box in the corner
         pyautogui.click(1873, 969)
@@ -310,6 +309,8 @@ def generate_output(address_df):
 
     clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
     clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
+    clone_file(user.fullscreen_path, os.path.join(user.input_path, f'Greenshots_fullscreen_backup_{current_time()}'))
+    
     print(f'\nThe program finishes! Output file: {fileName} is generated!')
     tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {fileName} is generated!')
 
@@ -343,20 +344,23 @@ class SimpleUI:
         self.label = tk.Label(master, text="Choose an option:", pady=10, font=("Arial", font_size))
         self.label.pack()
 
-        self.button4 = tk.Button(master, text="Open Input Folder", command=self.open_input_folder, pady=5, font=("Arial", font_size))
+        self.button4 = tk.Button(master, text="1. Open Input Folder", command=self.open_input_folder, pady=5, font=("Arial", font_size))
         self.button4.pack(pady=5)
 
-        self.button5 = tk.Button(master, text="Open Output Folder", command=self.open_output_folder, pady=5, font=("Arial", font_size))
+        self.button5 = tk.Button(master, text="2. Open Output Folder", command=self.open_output_folder, pady=5, font=("Arial", font_size))
         self.button5.pack(pady=5)
 
-        self.button1 = tk.Button(master, text="Check/Change Username", command=self.check_change_username, pady=5, font=("Arial", font_size))
+        self.button1 = tk.Button(master, text="3. Check/Change Username", command=self.check_change_username, pady=5, font=("Arial", font_size))
         self.button1.pack(pady=5)
 
-        self.button2 = tk.Button(master, text="Screenshot EPRC", command=self.driver_eprc, pady=5, font=("Arial", font_size))
+        self.button2 = tk.Button(master, text="4. Open EPRC Website", command=self.driver_eprc, pady=5, font=("Arial", font_size))
         self.button2.pack(pady=5)
 
-        self.button3 = tk.Button(master, text="OCR by Vision Studio", command=driver_setup, pady=5, font=("Arial", font_size))
+        self.button3 = tk.Button(master, text="5. Screenshot EPRC", command=eprc_Screenshot, pady=5, font=("Arial", font_size))
         self.button3.pack(pady=5)
+
+        self.button4 = tk.Button(master, text="6. OCR by Vision Studio", command=driver_setup, pady=5, font=("Arial", font_size))
+        self.button4.pack(pady=5)
 
         # When the simpleUI is closed, ask the user first if they want to close the program
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -410,7 +414,6 @@ class SimpleUI:
 
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Please check that you have logged out EPRC.\nDo you want to quit?"):
-            self.master.destroy()
             exit()
     
     def open_output_folder(self):
@@ -437,95 +440,24 @@ def main():
 
     # Set up for the alert UI
     root = tkinter.Tk()
-    root.geometry("400x300")
+    root.geometry("300x350")
     root.eval('tk::PlaceWindow . center')
 
     username = check_username()
     user = User(username)
     user.printUserInformation()
     fileExistOrCreate(user.input_path)
+    fileExistOrCreate(user.fullscreen_path)
     load_samplePhotos()
 
+    print('\n...The program is running...')
+
     app = SimpleUI(root)
-    root.mainloop()
+    root.mainloop()    
 
+    # End the program
+    print('The program is terminated...')
     exit()
-
-
-    #============================ The start of EPRC ============================
-    # try: 
-    #     eprc_driver = driver_eprc()
-    
-    # except Exception as e:
-    #     tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
-
-    # tkinter.messagebox.showinfo('Information', 'Start Searching in EPRC.')
-
-    #  # Set up the key event handle  r
-    # keyboard.hook(on_key_event)
-
-    # # Create a thread for running the automation
-    # automation_thread = threading.Thread(target=eprc_Screenshot)
-
-    # automation_thread.start()
-    # automation_thread.join()
-
-    # # Alert dialog that tell the user to input the username and password
-    # tkinter.messagebox.showinfo('Information', 'Finish screenshooting.\nPLEASE REMEMBER TO LOG OUT EPRC!', parent = root)
-
-    #============================ The end of EPRC ============================#
-
-    # Create a new tab of https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
-
-    # The 5 series are used to store the data
-    chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
-
-    try:            
-        address_files = os.listdir(user.address_path)
-        contact_files = os.listdir(user.contact_path)
-        print(contact_files)
-
-        check_inputLens()
-
-        driver = driver_setup()
-        
-        try:
-            # address_files_sorted = sorted(address_files,key=lambda x: int(os.path.splitext(x)[0]))
-            address_files_sorted = sorted(address_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
-            for file in address_files_sorted:
-                print('\nUploading the file: ' + file)
-                file_path = os.path.join(user.address_path, file)
-                json_data = upload_file(driver, file_path)
-                chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
-
-        except Exception as e:
-            tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-            # driver.quit()
-            exit()
-            
-        try:
-            # contact_files_sorted = sorted(contact_files,key=lambda x: int(os.path.splitext(x)[0]))
-            # contact_files_sorted = sorted(contact_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
-            for file in contact_files:
-                print('\nUploading the file: ' + file)
-                file_path = os.path.join(user.contact_path, file)
-                json_data = upload_file(driver, file_path)
-                # print(telephone_series, contact_series)
-                telephone_series, contact_series = separate_contact(json_data, telephone_series, contact_series)
-        
-        except Exception as e:
-            tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
-            exit()
-
-        # finally:
-        #     driver.quit()
-        
-        address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
-        print(address_df)
-        generate_output(address_df)
-
-    except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
 
 if __name__ == "__main__":
     main()
