@@ -185,7 +185,6 @@ def build_outputDF(contact_series, telephone_series, imageName_series):
 
 def driver_setup():
     global photo_cnt
-    root = tkinter.Tk()
 
     # Create a new tab of https://portal.vision.cognitive.azure.com/demo/extract-text-from-images
     options = webdriver.ChromeOptions()
@@ -218,7 +217,7 @@ def driver_setup():
                 photo_cnt += 1
         
         except Exception as e:
-            tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
+            tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
             exit()
 
         # output_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series, imageName_series)
@@ -227,7 +226,7 @@ def driver_setup():
         generate_output(output_df)
 
     except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
+        tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.')
 
     finally:
         driver.quit()
@@ -463,8 +462,12 @@ def main():
         username = check_username()
         user = User(username)
         user.printUserInformation()
+        
         fileExistOrCreate(user.input_path)
         fileExistOrCreate(user.fullscreen_path)
+        fileExistOrCreate(user.contact_path)
+        fileExistOrCreate(user.output_path)
+
         load_samplePhotos()
 
         print('\n...The program is running...')
