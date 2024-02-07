@@ -34,7 +34,7 @@ class User:
     def printUserInformation(self):
         print(f'Username: {self.username}')
         print(f'Input path: {self.input_path}')
-        print(f'Address path: {self.address_path}')
+        # print(f'Address path: {self.address_path}')
         print(f'Contact path: {self.contact_path}')
         print(f'Output path: {self.output_path}')
         print(f'Fullscreen path: {self.fullscreen_path}')
@@ -43,7 +43,7 @@ class User:
     def __init__(self, username):
         self.username = username
         self.input_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input')
-        self.address_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_address')
+        # self.address_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_address')
         self.contact_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_contact')
         self.output_path = os.path.join(r'C:\Users', username, f'Pictures\Greenshots_output')
         self.fullscreen_path = os.path.join(r'C:\Users', username, 'Pictures\Greenshots_input', f'Greenshots_fullscreen')
@@ -63,21 +63,7 @@ def printSingleLine(input):
     print(input)
     print('--------------------------------------------------')
 
-# def separate_address(json_data, chinese_address_series, english_address_series):
-#     for i in range(0, json_data.__len__()):
-#         content = json_data[i]['text']
-#         last_slash = content.rfind('/')
-
-#         chinese_address = content[0:last_slash]
-#         english_address = content[last_slash+1:]
-        
-#         chinese_address_series = chinese_address_series._append(pd.Series([chinese_address]), ignore_index=True)
-#         english_address_series = english_address_series._append(pd.Series([english_address]), ignore_index=True)
-#         print(chinese_address, english_address)
-
-#     return chinese_address_series, english_address_series
-
-def separate_contact(json_data, telephone_series, contact_series, page_series):
+def separate_contact(json_data, telephone_series, contact_series, imageName_series, fileName):
     global photo_cnt
 
     for i in range(0, json_data.__len__()): 
@@ -86,10 +72,9 @@ def separate_contact(json_data, telephone_series, contact_series, page_series):
         # If the first 8 characters are digits, or the content is "NIL", it is a telephone number
         if(content[:8].isdigit() or content == "NIL") and len(content) >= 8:
             telephone_series = telephone_series._append(pd.Series([content]), ignore_index=True)
-            # page series append the current page number, where the iteration of the loop
-            page_series = page_series._append(pd.Series([photo_cnt]), ignore_index=True)
+            imageName_series = imageName_series._append(pd.Series([fileName]), ignore_index=True)
             
-    return telephone_series, contact_series, page_series
+    return telephone_series, contact_series, imageName_series
 
 def fileExistOrCreate(path):
     if(os.path.exists(path) == False):
@@ -99,7 +84,7 @@ def fileExistOrCreate(path):
     else:
         print(f'Path: {path} exists!')
 
-def upload_file(driver, file_path):
+def ocr_file(driver, file_path):
     try:
         button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[2]/div/div[1]/div[2]/button[1]")))
         button.click()
@@ -117,10 +102,18 @@ def upload_file(driver, file_path):
         return json_data
 
     except Exception as e:
-        tkinter.messagebox.showinfo('Error', f'Error processing file {file_path}: {e}\n The program is terminated.', parent = root)
+        tkinter.messagebox.showinfo('Error', f'Error processing file {file_path}: {e}\n The program is terminated.')
         driver.quit()
         print('The program is terminated...')
         exit()
+
+def clone_file(srcPath, destPath):
+    fileExistOrCreate(destPath)
+    files = os.listdir(srcPath)
+    for file in files:
+        print(f'Copying file: {file} ...')
+        shutil.copy(os.path.join(srcPath, file), destPath)
+        os.remove(os.path.join(srcPath, file))
 
 def current_time():
     return time.strftime("%Y%m%d-%H%M%S")
@@ -129,28 +122,15 @@ def check_inputLens():
     global user
 
     root = tkinter.Tk()
-
-    # address_files = os.listdir(user.address_path)
     contact_files = os.listdir(user.contact_path)
-
-    # print('Files in the Address folder:\n', address_files)
     print('\nFiles in the Contact folder:\n', contact_files)
 
     if (len(contact_files) == 0):
         tkinter.messagebox.showinfo('Error', f'Please input photos in the Contact folder.', parent = root)
-    # elif(len(address_files) != len(contact_files)):
-    #     confirm = messagebox.askquestion('Confirmation', "The number of files in the address folder and contact folder are not the same!\nConfirm to proceed?", parent = root)
-    #     if confirm == 'no':
-    #         print("Exit the program...")
-    #         exit()
 
 def load_samplePhotos():
     global user
-    # if(os.path.exists(user.address_path) == False):
-    #     fileExistOrCreate(user.address_path)
-    #     shutil.copy('demoAddress_1.png', user.address_path)
-    #     shutil.copy('demoAddress_2.png', user.address_path)
-    
+
     if(os.path.exists(user.contact_path) == False):
         fileExistOrCreate(user.contact_path)
         shutil.copy('demoContact_1.png', user.contact_path)
@@ -163,8 +143,15 @@ def on_key_event(event):
         stop_automation = True
         print(f'Pressed \'F2\', stop_automation value is set to {stop_automation}.')
 
-def generate_output(address_df):
+def generate_output(output_df):
     global user
+
+     # Create a new folder using the desired naming convention
+    folder_name = 'BackUp_' + current_time()
+    output_folder_path = os.path.join(r'C:\Users', user.username, f'Pictures\Greenshots_input', folder_name)
+    fileExistOrCreate(output_folder_path)
+
+
     fileName = 'Result' + current_time() + '.xlsx'
     # user.input_path = os.path.join(r'C:\Users', user.username, 'Pictures\Greenshots_input')
     # user.output_path = os.path.join(r'C:\Users', user.username, f'Pictures\Greenshots_output')
@@ -173,33 +160,28 @@ def generate_output(address_df):
     if not os.path.exists(user.output_path):
         fileExistOrCreate(user.output_path)
 
-    address_df.to_excel(output_file_path, index=False)
+    output_df.to_excel(output_file_path, index=False)
 
     Popen(output_file_path, shell=True)
 
-    # clone_file(user.address_path, os.path.join(user.input_path, f'Greenshots_address_backup_{current_time()}'))
-    clone_file(user.contact_path, os.path.join(user.input_path, f'Greenshots_contact_backup_{current_time()}'))
-    clone_file(user.fullscreen_path, os.path.join(user.input_path, f'Greenshots_fullscreen_backup_{current_time()}'))
+    clone_file(user.contact_path, os.path.join(output_folder_path, f'Greenshots_contact_backup_{current_time()}'))
+    clone_file(user.fullscreen_path, os.path.join(output_folder_path, f'Greenshots_fullscreen_backup_{current_time()}'))
     
     print(f'\nThe program finishes! Output file: {fileName} is generated!')
     tkinter.messagebox.showinfo('Information', f'The program finishes! Output file: {fileName} is generated!')
 
-def build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series):
-    address_df = pd.concat([chinese_address_series, english_address_series, contact_series, telephone_series, page_series], axis=1)
+# def build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series):
+def build_outputDF(contact_series, telephone_series, imageName_series):
+    output_df = pd.concat([imageName_series, contact_series, telephone_series], axis=1)
             
-    if address_df.empty:
+    if output_df.empty:
         tkinter.messagebox.showinfo('Error', f'No data is generated!\n The program is terminated.')
         print('The program is terminated...')
         exit()
 
-    address_df.columns = ['Chinese Address', 'English Address', 'Contact', 'Telephone Number', 'Page']
-
-    # This part is HARD CODED, need to be changed if the number of pages is changed
-    # for i in range(len(address_df)):
-    #     page_series = page_series._append(pd.Series([int(i/30)+1]), ignore_index=True)
-        
-    address_df['Page'] = page_series
-    return address_df
+    output_df.columns = ['Image Name', 'Contact', 'Telephone Number']
+    # output_df['Page'] = page_series
+    return output_df
 
 def driver_setup():
     global photo_cnt
@@ -216,46 +198,33 @@ def driver_setup():
     button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/main/div/div[2]/div[2]/div[5]/div/div[3]/div/div[2]/div/div[1]/button[2]"))) 
     button.click()
 
-    chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
+    # chinese_address_series, english_address_series, telephone_series, contact_series, page_series = pd.Series(), pd.Series(), pd.Series(), pd.Series(), pd.Series()
+    telephone_series, contact_series, imageName_series = pd.Series(), pd.Series(), pd.Series()
 
     try:            
-        address_files = os.listdir(user.address_path)
+        # address_files = os.listdir(user.address_path)
         contact_files = os.listdir(user.contact_path)
         print(contact_files)
 
         check_inputLens()
-
-        # try:
-        #     # address_files_sorted = sorted(address_files,key=lambda x: int(os.path.splitext(x)[0]))
-        #     address_files_sorted = sorted(address_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
-        #     for file in address_files_sorted:
-        #         print('\nUploading the file: ' + file)
-        #         file_path = os.path.join(user.address_path, file)
-        #         json_data = upload_file(driver, file_path)
-        #         chinese_address_series, english_address_series = separate_address(json_data, chinese_address_series, english_address_series)
-
-        # except Exception as e:
-        #     tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
-        #     # driver.quit()
-        #     exit()
             
         try:
-            # contact_files_sorted = sorted(contact_files,key=lambda x: int(os.path.splitext(x)[0]))
-            # contact_files_sorted = sorted(contact_files, key=lambda x: int(re.search(r'\d+', os.path.splitext(x)[0]).group()))
             for file in contact_files:
                 print('\nUploading the file: ' + file)
                 file_path = os.path.join(user.contact_path, file)
-                json_data = upload_file(driver, file_path)
-                telephone_series, contact_series, page_series = separate_contact(json_data, telephone_series, contact_series, page_series)
+                json_data = ocr_file(driver, file_path)
+                # Add file name to the imageName_series
+                telephone_series, contact_series, imageName_series = separate_contact(json_data, telephone_series, contact_series, imageName_series, file)
                 photo_cnt += 1
         
         except Exception as e:
             tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
             exit()
 
-        address_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series)
-        print(address_df)
-        generate_output(address_df)
+        # output_df = build_outputDF(chinese_address_series, english_address_series, contact_series, telephone_series, page_series, imageName_series)
+        output_df = build_outputDF(contact_series, telephone_series, imageName_series)
+        print(output_df)
+        generate_output(output_df)
 
     except Exception as e:
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
@@ -361,10 +330,14 @@ class SimpleUI:
 
             # Screenshoting the page
             pyautogui.moveTo(1350, 1010, duration = 0.3)
-            pyautogui.dragTo(830, 255, duration=1.5)
+            pyautogui.dragTo(830, 255, duration=2.0)
             
             time.sleep(0.5)
-            pyautogui.typewrite(user.contact_path + f"\\{query_name}_{page_cnt}.png")
+            # if the page_cnt < 10, add a '0' in front of the page_cnt
+            if page_cnt < 10:
+                pyautogui.typewrite(user.contact_path + f"\\{query_name}_0{page_cnt}.png")
+            else:
+                pyautogui.typewrite(user.contact_path + f"\\{query_name}_{page_cnt}.png")
             time.sleep(0.5)
             pyautogui.press('enter')
 
@@ -373,7 +346,11 @@ class SimpleUI:
             # press the control + print scrn button to capture the full screen
             pyautogui.hotkey('ctrl', 'printscreen')
             time.sleep(0.5)
-            pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_{page_cnt}.png")
+            # if the page_cnt < 10, add a '0' in front of the page_cnt
+            if page_cnt < 10:
+                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_fullscreen_0{page_cnt}.png")
+            else:
+                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_fullscreen_{page_cnt}.png")
             pyautogui.press('enter')
             
             time.sleep(0.5)
@@ -455,7 +432,6 @@ class SimpleUI:
     def within_clickable_area(self, x, y):
         return 1785 <= x <= 1800 and (y == 65567 or y == 65597)
 
-
 #A function to check whether a prefix exist in files in a folder
 def check_prefix_exist(prefix, folder):
     files = os.listdir(folder)
@@ -497,6 +473,7 @@ def main():
         root.mainloop()    
 
     except Exception as e:
+        print(f'Error occurs: {e}\n The program is terminated.')
         tkinter.messagebox.showinfo('Error', f'Error occurs: {e}\n The program is terminated.', parent = root)
 
     finally:
