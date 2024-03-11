@@ -352,23 +352,16 @@ class SimpleUI:
             time.sleep(0.5)
             pyautogui.press('enter')
 
-            pyautogui.press('F4')
+            time.sleep(2.0)
 
-            # Screenshoting the preview of <- To instead of the full screenshot
-            pyautogui.moveTo(0, 252, duration=2.0)
-            pyautogui.dragTo(1350, 1010, duration = 0.75)
-            
+            # Save the page as PDF by pressing the 'Ctrl + P' button
+            pyautogui.hotkey('ctrl', 'p')
             time.sleep(0.5)
-            # if the page_cnt < 10, add a '0' in front of the page_cnt
-            if page_cnt < 10:
-                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_0{page_cnt}.png")
-            else:
-                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_{page_cnt}.png")
-            
+            pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_{page_cnt}.pdf")
             time.sleep(0.5)
             pyautogui.press('enter')
-
             time.sleep(0.5)
+            
 
             # # press the control + print scrn button to capture the full screen
             # pyautogui.hotkey('ctrl', 'printscreen')
