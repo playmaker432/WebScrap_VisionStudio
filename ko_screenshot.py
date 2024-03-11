@@ -294,10 +294,21 @@ class SimpleUI:
         global user
         global query_name   
 
+        fullAuto = False
         stop_automation = False
         page_cnt = 1
 
-        # While loop to keep asking for the query name
+        # Ask that user if he wants to run in fullAuto Mode?
+        # fullAuto = messagebox.askyesno('Full Auto Mode', 'Do you want to run in Full Auto Mode?')
+        # if fullAuto:
+        #     print('Full Auto Mode is enabled.')
+        # else:
+        #     print('Full Auto Mode is disabled.')
+
+        # Queryname input
+        # if not fullAuto:
+        # While loop to keep asking for the query name, while fullAuto will run as: HK -> KL -> NT
+        
         while True:
             query_name = simpledialog.askstring("Query Name", "Enter a query name:")
             if query_name is None:  # Check if dialog is canceled
@@ -309,7 +320,6 @@ class SimpleUI:
             else:
                 break
 
-
         # Use yes or no dialog to confirm continue
         confirm = messagebox.askyesno('Confirmation', f'Are you sure to start the screenshot for the query: {query_name}?')
         if not confirm:
@@ -317,9 +327,10 @@ class SimpleUI:
 
         self.master.withdraw()
 
+        # Code PER QUERY
         while not stop_automation:
             time.sleep(5.0)
-            # Click the 'Next Page' button
+            # Set up the pos of 'Next Page' button
             x_pos = 1785
             y_pos = 1025
 
@@ -337,22 +348,39 @@ class SimpleUI:
                 pyautogui.typewrite(user.contact_path + f"\\{query_name}_0{page_cnt}.png")
             else:
                 pyautogui.typewrite(user.contact_path + f"\\{query_name}_{page_cnt}.png")
+            
             time.sleep(0.5)
             pyautogui.press('enter')
 
-            time.sleep(0.5)
+            pyautogui.press('F4')
 
-            # press the control + print scrn button to capture the full screen
-            pyautogui.hotkey('ctrl', 'printscreen')
+            # Screenshoting the preview of <- To instead of the full screenshot
+            pyautogui.moveTo(0, 252, duration=2.0)
+            pyautogui.dragTo(1350, 1010, duration = 0.75)
+            
             time.sleep(0.5)
             # if the page_cnt < 10, add a '0' in front of the page_cnt
             if page_cnt < 10:
-                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_fullscreen_0{page_cnt}.png")
+                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_0{page_cnt}.png")
             else:
-                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_fullscreen_{page_cnt}.png")
-            pyautogui.press('enter')
+                pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_{page_cnt}.png")
             
             time.sleep(0.5)
+            pyautogui.press('enter')
+
+            time.sleep(0.5)
+
+            # # press the control + print scrn button to capture the full screen
+            # pyautogui.hotkey('ctrl', 'printscreen')
+            # time.sleep(0.5)
+            # # if the page_cnt < 10, add a '0' in front of the page_cnt
+            # if page_cnt < 10:
+            #     pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_fullscreen_0{page_cnt}.png")
+            # else:
+            #     pyautogui.typewrite(user.fullscreen_path + f"\\{query_name}_fullscreen_{page_cnt}.png")
+            # pyautogui.press('enter')
+            
+            # time.sleep(0.5)
 
             while True:
                 pyautogui.moveTo(x_pos, y_pos, duration=0.5)
@@ -449,6 +477,7 @@ def check_username():
     else:
         print(f'Username: \'{username}\' exists!')
     return username
+
 
 def main():
     global user
